@@ -35,8 +35,20 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "AutoPile API V1");
+        // Optional: make Swagger UI available at the root
+        // c.RoutePrefix = string.Empty;
+    });
 }
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AutoPile API V1");
+    // Optional: make Swagger UI available at the root
+    // c.RoutePrefix = string.Empty;
+});
 
 app.UseHttpsRedirection();
 
