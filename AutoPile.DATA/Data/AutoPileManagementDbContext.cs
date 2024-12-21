@@ -12,21 +12,38 @@ namespace AutoPile.DATA.Data
 {
     public class AutoPileManagementDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
-        private readonly IConfiguration _configuration;
-
-        public AutoPileManagementDbContext(DbContextOptions<AutoPileManagementDbContext> options, IConfiguration configuration)
+        public AutoPileManagementDbContext(DbContextOptions<AutoPileManagementDbContext> options)
             : base(options)
         {
-            _configuration = configuration;
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<OrderItems>(entity =>
             {
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                optionsBuilder.UseSqlServer(connectionString);
-            }
+                entity.Property(e => e.ProductPrice).HasPrecision(18, 2);
+                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Orders>(entity =>
+            {
+                entity.Property(e => e.DeliveryFee).HasPrecision(18, 2);
+                entity.Property(e => e.SubTotal).HasPrecision(18, 2);
+                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Products>(entity =>
+            {
+                entity.Property(e => e.Price).HasPrecision(18, 2);
+                entity.Property(e => e.ComparePrice).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Reviews>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId);
         }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
