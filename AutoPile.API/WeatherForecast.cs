@@ -1,4 +1,4 @@
-namespace AutoPile_backend
+namespace AutoPile.API
 {
     public class WeatherForecast
     {

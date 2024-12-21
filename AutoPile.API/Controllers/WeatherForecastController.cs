@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace AutoPile_backend.Controllers
+namespace AutoPile.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
