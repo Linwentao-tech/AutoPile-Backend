@@ -11,17 +11,17 @@ namespace AutoPile.DOMAIN.Models.Entities
     {
         public ApplicationUser()
         {
-            Orders = new List<Orders>();
-            Reviews = new List<Reviews>();
-            ShoppingCartItems = new List<ShoppingCartItems>();
+            Orders = new List<Order>();
+            Reviews = new List<Review>();
+            ShoppingCartItems = new List<ShoppingCartItem>();
         }
 
         public string? EmailVerifyToken { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
 
-        public ICollection<Orders> Orders { get; set; }
-        public ICollection<Reviews> Reviews { get; set; }
-        public ICollection<ShoppingCartItems> ShoppingCartItems { get; set; }
+        public ICollection<Order> Orders { get; set; }
+        public ICollection<Review> Reviews { get; set; }
+        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
     }
 }

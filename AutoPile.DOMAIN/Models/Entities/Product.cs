@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class Products
+    public class Product
     {
-        public Products()
+        public Product()
         {
             ProductMedias = new List<ProductMedia>();
-            OrderItems = new List<OrderItems>();
-            Reviews = new List<Reviews>();
-            ShoppingCartItems = new List<ShoppingCartItems>();
+            OrderItems = new List<OrderItem>();
+            Reviews = new List<Review>();
+            ShoppingCartItems = new List<ShoppingCartItem>();
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public int CategoryId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -30,9 +30,9 @@ namespace AutoPile.DOMAIN.Models.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public ICollection<ProductMedia> ProductMedias { get; set; }
-        public ICollection<OrderItems> OrderItems { get; set; }
-        public ICollection<Reviews> Reviews { get; set; }
-        public ICollection<ShoppingCartItems> ShoppingCartItems { get; set; }
-        public Categories Categories { get; set; }
+        public ICollection<OrderItem> OrderItems { get; set; }
+        public ICollection<Review> Reviews { get; set; }
+        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
+        public Category Category { get; set; }
     }
 }
