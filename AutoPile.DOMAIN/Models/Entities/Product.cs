@@ -18,7 +18,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         }
 
         public int Id { get; set; }
-        public int CategoryId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ProductInfo { get; set; }
@@ -27,7 +26,7 @@ namespace AutoPile.DOMAIN.Models.Entities
         public decimal ComparePrice { get; set; }
         public bool IsInStock { get; set; }
         public int StockQuantity { get; set; }
-        public string Ribbon { get; set; }
+        public Ribbon Ribbon { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public ICollection<ProductMedia> ProductMedias { get; set; }
