@@ -21,7 +21,6 @@ namespace AutoPile.DATA.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Category>().HasMany(c => c.Products).WithOne(c => c.Category).HasForeignKey(c => c.CategoryId);
             modelBuilder.Entity<Order>().HasMany(o => o.OrderItems).WithOne(o => o.Order).HasForeignKey(o => o.OrderId);
             modelBuilder.Entity<Product>().HasMany(p => p.OrderItems).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
             modelBuilder.Entity<ApplicationUser>().HasMany(u => u.Orders).WithOne(u => u.User).HasForeignKey(u => u.UserId);
@@ -58,7 +57,6 @@ namespace AutoPile.DATA.Data
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<ApplicationRole> ApplicationRoles { get; set; }
-        public DbSet<Category> Categories { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductMedia> ProductMedias { get; set; }
