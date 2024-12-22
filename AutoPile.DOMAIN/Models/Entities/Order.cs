@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class Orders
+    public class Order
     {
-        public Orders()
+        public Order()
         {
-            OrderItems = new List<OrderItems>();
+            OrderItems = new List<OrderItem>();
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string UserId { get; set; }
         public string OrderNumber { get; set; }
         public DateTime OrderDate { get; set; }
@@ -33,6 +33,6 @@ namespace AutoPile.DOMAIN.Models.Entities
 
         public ApplicationUser User { get; set; }
 
-        public ICollection<OrderItems> OrderItems { get; set; }
+        public ICollection<OrderItem> OrderItems { get; set; }
     }
 }

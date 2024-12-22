@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class Categories
+    public class Category
     {
-        public Categories()
+        public Category()
         {
-            Products = new List<Products>();
+            Products = new List<Product>();
         }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string Slug { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public ICollection<Products> Products { get; set; }
+        public ICollection<Product> Products { get; set; }
     }
 }
