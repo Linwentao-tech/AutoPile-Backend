@@ -1,4 +1,4 @@
-﻿using AutoPile.DOMAIN.DTOs.Requests;
+using AutoPile.DOMAIN.DTOs.Requests;
 using FluentValidation;
 
 namespace AutoPile.API.Validators
@@ -46,10 +46,6 @@ namespace AutoPile.API.Validators
                 .NotEmpty().WithMessage("Postal code is required")
                 .MaximumLength(20).WithMessage("Postal code cannot exceed 20 characters")
                 .Matches(@"^[A-Za-z0-9\s-]+$").WithMessage("Postal code can only contain letters, numbers, spaces, and hyphens");
-
-            RuleFor(x => x.OrderItems)
-                .NotEmpty().WithMessage("Order must contain at least one item")
-                .Must(items => items.Count <= 50).WithMessage("Order cannot contain more than 50 items");
         }
     }
 }

@@ -4,6 +4,7 @@ using AutoPile.DATA.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoPile.DATA.Migrations
 {
     [DbContext(typeof(AutoPileManagementDbContext))]
-    partial class AutoPileManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241223150854_DatabaseUpdate")]
+    partial class DatabaseUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,7 +201,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.OrderItem", b =>
@@ -236,7 +239,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.Product", b =>
@@ -291,7 +294,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.ProductMedia", b =>
@@ -335,7 +338,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductMedias", (string)null);
+                    b.ToTable("ProductMedias");
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.Review", b =>
@@ -385,7 +388,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.ShoppingCartItem", b =>
@@ -415,7 +418,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ShoppingCartItems", (string)null);
+                    b.ToTable("ShoppingCartItems");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

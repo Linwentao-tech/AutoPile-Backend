@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.DTOs.Requests
 {
-    public class UserUpdateInfoDTO
+    public class ShoppingCartItemRequestDto
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 }

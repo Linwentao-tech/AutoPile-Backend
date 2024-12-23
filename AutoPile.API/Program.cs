@@ -1,8 +1,6 @@
-using AutoPile.API.Validators;
+using AutoPile.API.Mapping;
 using AutoPile.DATA.Data;
 using AutoPile.DOMAIN.Models.Entities;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -12,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddValidatorsFromAssemblyContaining<OrderItemRequestValidator>();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(
     c =>
     {
@@ -31,6 +29,8 @@ builder.Services.AddDbContext<AutoPileManagementDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 .AddEntityFrameworkStores<AutoPileManagementDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 
