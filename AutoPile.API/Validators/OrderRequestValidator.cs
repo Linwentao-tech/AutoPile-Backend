@@ -1,4 +1,4 @@
-﻿using AutoPile.DOMAIN.DTOs.Requests;
+using AutoPile.DOMAIN.DTOs.Requests;
 using FluentValidation;
 
 namespace AutoPile.API.Validators

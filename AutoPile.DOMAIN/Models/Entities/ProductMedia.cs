@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +17,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string Title { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
-
         public Product Product { get; set; }
     }
 }
