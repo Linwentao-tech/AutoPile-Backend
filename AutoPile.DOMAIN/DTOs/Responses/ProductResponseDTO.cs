@@ -1,22 +1,15 @@
 ﻿using AutoPile.DOMAIN.Enum;
+using AutoPile.DOMAIN.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutoPile.DOMAIN.Models.Entities
+namespace AutoPile.DOMAIN.DTOs.Responses
 {
-    public class Product
+    public class ProductResponseDTO
     {
-        public Product()
-        {
-            ProductMedias = new List<ProductMedia>();
-            OrderItems = new List<OrderItem>();
-            Reviews = new List<Review>();
-            ShoppingCartItems = new List<ShoppingCartItem>();
-        }
-
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -28,11 +21,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         public int StockQuantity { get; set; }
         public Ribbon Ribbon { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public ICollection<ProductMedia> ProductMedias { get; set; }
-        public ICollection<OrderItem> OrderItems { get; set; }
-        public ICollection<Review> Reviews { get; set; }
-        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
         public Category Category { get; set; }
     }
 }
