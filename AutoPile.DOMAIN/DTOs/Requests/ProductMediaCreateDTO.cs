@@ -16,5 +16,6 @@ namespace AutoPile.DOMAIN.DTOs.Requests
         public string AltText { get; set; }
         public string Title { get; set; }
         public int Width { get; set; }
+        public int Height { get; set; }
     }
 }

@@ -19,7 +19,6 @@ namespace AutoPile.DOMAIN.DTOs.Requests
         public bool IsInStock { get; set; }
         public int StockQuantity { get; set; }
         public Ribbon Ribbon { get; set; }
-        public DateTime CreatedAt { get; set; }
         public Category Category { get; set; }
     }
 }
