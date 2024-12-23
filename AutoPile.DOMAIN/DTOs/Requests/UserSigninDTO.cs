@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.DTOs.Requests
 {
-    public class UserSigninDto
+    public class UserSigninDTO
     {
         public string Email { get; set; }
         public string Password { get; set; }

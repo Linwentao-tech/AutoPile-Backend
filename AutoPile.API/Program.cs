@@ -1,3 +1,4 @@
+using AutoPile.API.Mapping;
 using AutoPile.DATA.Data;
 using AutoPile.DOMAIN.Models.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(
     c =>
     {
@@ -27,6 +29,8 @@ builder.Services.AddDbContext<AutoPileManagementDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 .AddEntityFrameworkStores<AutoPileManagementDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 
