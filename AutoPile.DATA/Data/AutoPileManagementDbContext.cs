@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoPile.DATA.Configurations;
 using AutoPile.DOMAIN.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,9 @@ namespace AutoPile.DATA.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfiguration(new OrderConfigurations());
+            modelBuilder.ApplyConfiguration(new OrderItemConfigurations());
+            modelBuilder.ApplyConfiguration(new ProductConfigurations());
 
             modelBuilder.Entity<Order>().HasMany(o => o.OrderItems).WithOne(o => o.Order).HasForeignKey(o => o.OrderId);
             modelBuilder.Entity<Product>().HasMany(p => p.OrderItems).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
@@ -29,30 +33,6 @@ namespace AutoPile.DATA.Data
             modelBuilder.Entity<Product>().HasMany(p => p.Reviews).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
             modelBuilder.Entity<ApplicationUser>().HasMany(u => u.ShoppingCartItems).WithOne(u => u.User).HasForeignKey(u => u.UserId);
             modelBuilder.Entity<Product>().HasMany(p => p.ShoppingCartItems).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
-
-            modelBuilder.Entity<OrderItem>(entity =>
-            {
-                entity.Property(e => e.ProductPrice).HasPrecision(18, 2);
-                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
-            });
-
-            modelBuilder.Entity<Order>(entity =>
-            {
-                entity.Property(e => e.DeliveryFee).HasPrecision(18, 2);
-                entity.Property(e => e.SubTotal).HasPrecision(18, 2);
-                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
-            });
-
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.Property(e => e.Price).HasPrecision(18, 2);
-                entity.Property(e => e.ComparePrice).HasPrecision(18, 2);
-            });
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Reviews)
-                .HasForeignKey(r => r.UserId);
         }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
