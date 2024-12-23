@@ -1,24 +1,20 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutoPile.DOMAIN.Models.Entities
+namespace AutoPile.DOMAIN.DTOs.Requests
 {
-    public class Review
+    public class ReviewCreateDTO
     {
-        public int Id { get; set; }
         public string UserId { get; set; }
         public int ProductId { get; set; }
         public string Title { get; set; }
         public string Subtitle { get; set; }
         public string Content { get; set; }
         public int Rating { get; set; }
-        public byte[] Image { get; set; }
-        public string ImageContentType { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public ApplicationUser User { get; set; }
-        public Product Product { get; set; }
+        public IFormFile Image { get; set; }
     }
 }
