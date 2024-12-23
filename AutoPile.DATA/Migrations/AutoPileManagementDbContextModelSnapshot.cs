@@ -350,7 +350,11 @@ namespace AutoPile.DATA.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ImageContentType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

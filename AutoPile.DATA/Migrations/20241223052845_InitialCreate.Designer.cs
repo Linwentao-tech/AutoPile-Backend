@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoPile.DATA.Migrations
 {
     [DbContext(typeof(AutoPileManagementDbContext))]
-    [Migration("20241222122141_UpdateRibbonType")]
-    partial class UpdateRibbonType
+    [Migration("20241223052845_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -353,7 +353,11 @@ namespace AutoPile.DATA.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ImageContentType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
