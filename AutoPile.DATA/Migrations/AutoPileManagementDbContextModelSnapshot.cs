@@ -198,7 +198,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.OrderItem", b =>
@@ -236,7 +236,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.Product", b =>
@@ -291,7 +291,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.ProductMedia", b =>
@@ -332,7 +332,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductMedias");
+                    b.ToTable("ProductMedias", (string)null);
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.Review", b =>
@@ -382,7 +382,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("AutoPile.DOMAIN.Models.Entities.ShoppingCartItem", b =>
@@ -415,7 +415,7 @@ namespace AutoPile.DATA.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ShoppingCartItems");
+                    b.ToTable("ShoppingCartItems", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
