@@ -1,9 +1,9 @@
-using AutoPile.DOMAIN.DTOs.Requests;
+﻿using AutoPile.DOMAIN.DTOs.Requests;
 using FluentValidation;
 
 namespace AutoPile.API.Validators
 {
-    public class OrderRequestValidator : AbstractValidator<OrderCreateDTO>
+    public class OrderUpdateValidator : AbstractValidator<OrderUpdateDTO>
     {
         private bool BeValidPaymentMethod(string paymentMethod)
         {
@@ -11,12 +11,11 @@ namespace AutoPile.API.Validators
             return validMethods.Contains(paymentMethod);
         }
 
-        public OrderRequestValidator()
+        public OrderUpdateValidator()
         {
-            RuleFor(x => x.UserId)
-               .NotEmpty().WithMessage("User ID is required")
-               .MaximumLength(450).WithMessage("User ID cannot exceed 450 characters");
-
+            RuleFor(x => x.Status)
+               .NotEmpty().WithMessage("Status is required")
+               .MaximumLength(50);
             RuleFor(x => x.PaymentMethod)
                 .NotEmpty().WithMessage("Payment method is required")
                 .MaximumLength(50).WithMessage("Payment method cannot exceed 50 characters")

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoPile.API.Validators;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
@@ -45,6 +46,13 @@ namespace AutoPile.API.Mapping
             CreateMap<ApplicationUser, UserInfoResponseDTO>();
             CreateMap<ShoppingCartItemRequestDto, ShoppingCartItem>();
             CreateMap<ShoppingCartItem, ShoppingCartItemResponseDTO>();
+            CreateMap<UpdateShoppingCartItemDto, ShoppingCartItem>();
+            CreateMap<ReviewUpdateDTO, Review>()
+                .ForMember(dest => dest.ImageContentType, opt => opt.MapFrom(src => src.Image != null ? src.Image.ContentType : null))
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => ConvertFromFiletoArray(src.Image))); ;
+            CreateMap<ProductMediaUpdateDto, ProductMedia>();
+            CreateMap<OrderItemUpdateDTO, OrderItem>();
+            CreateMap<OrderUpdateValidator, Order>();
         }
     }
 }
