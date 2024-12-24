@@ -6,13 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.DTOs.Requests
 {
-    public class ShoppingCartItemRequestDto
-    {
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-    }
-
-    public class UpdateShoppingCartItemDto
+    public class OrderItemUpdateDTO
     {
         public int Quantity { get; set; }
     }

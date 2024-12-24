@@ -22,4 +22,18 @@ namespace AutoPile.API.Validators
                 .WithMessage("Quantity cannot exceed 100 items per order.");
         }
     }
+
+    public class UpdateShoppingCartItemValidator : AbstractValidator<UpdateShoppingCartItemDto>
+    {
+        public UpdateShoppingCartItemValidator()
+        {
+            RuleFor(x => x.Quantity)
+                .NotEmpty()
+                .WithMessage("Quantity is required.")
+                .GreaterThan(0)
+                .WithMessage("Quantity must be greater than 0.")
+                .LessThanOrEqualTo(100)
+                .WithMessage("Quantity cannot exceed 100 items.");
+        }
+    }
 }
