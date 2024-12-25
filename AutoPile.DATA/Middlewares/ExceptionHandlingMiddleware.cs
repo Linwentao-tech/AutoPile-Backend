@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoPile.DATA.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -26,6 +27,11 @@ namespace AutoPile.DATA.Middlewares
             try
             {
                 await _next(httpContext);
+            }
+            catch (AbstractHTTPexception ex)
+            {
+                _logger.LogError(ex, $"Http status: {ex.StatusCode}, Error Id: {ex.Id}, Error Time: {ex.DateTime}");
+                await ex.HandleExceptionAsync(httpContext);
             }
             catch (Exception ex)
             {
