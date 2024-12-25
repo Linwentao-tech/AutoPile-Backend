@@ -9,7 +9,7 @@ using System.Security.Claims;
 
 namespace AutoPile.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ShoppingCartItem : ControllerBase
     {
