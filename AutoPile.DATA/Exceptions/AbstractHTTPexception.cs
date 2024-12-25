@@ -23,8 +23,8 @@ namespace AutoPile.DATA.Exceptions
             var response = new
             {
                 Success = false,
-                base.Message,
                 StatusCode,
+                base.Message,
             };
             return context.Response.WriteAsync(JsonConvert.SerializeObject(response));
         }

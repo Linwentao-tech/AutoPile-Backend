@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace AutoPile.API.Validators
 {
-    public class ShoppingCartItemRequestDTO : AbstractValidator<ShoppingCartItemRequestDto>
+    public class ShoppingCartItemValidator : AbstractValidator<ShoppingCartItemRequestDto>
     {
-        public ShoppingCartItemRequestDTO()
+        public ShoppingCartItemValidator()
         {
             RuleFor(x => x.ProductId)
                 .NotEmpty()
