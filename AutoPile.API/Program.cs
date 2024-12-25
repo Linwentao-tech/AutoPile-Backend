@@ -1,7 +1,7 @@
-using AutoPile.API.Mapping;
 using AutoPile.DATA.Data;
+using AutoPile.DATA.Middlewares;
 using AutoPile.DOMAIN.Models.Entities;
-using Microsoft.AspNetCore.Diagnostics;
+using AutoPile.SERVICE.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(
@@ -20,6 +21,8 @@ builder.Services.AddSwaggerGen(
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath);
     });
+builder.Services.AddScoped<IShoppingCartItemService, ShoppingCartItemService>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -34,12 +37,12 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
-app.UseMiddleware<ExceptionHandlerMiddleware>();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseHsts();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    //app.MapOpenApi();
+    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
