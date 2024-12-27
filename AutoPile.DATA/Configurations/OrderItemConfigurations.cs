@@ -15,6 +15,7 @@ namespace AutoPile.DATA.Configurations
         {
             builder.Property(e => e.ProductPrice).HasPrecision(18, 2);
             builder.Property(e => e.TotalPrice).HasPrecision(18, 2);
+            builder.Property(e => e.ProductId).HasMaxLength(24);
         }
     }
 }

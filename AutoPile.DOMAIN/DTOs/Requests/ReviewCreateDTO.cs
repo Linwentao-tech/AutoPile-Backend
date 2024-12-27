@@ -10,7 +10,7 @@ namespace AutoPile.DOMAIN.DTOs.Requests
     public class ReviewCreateDTO
     {
         public string UserId { get; set; }
-        public int ProductId { get; set; }
+        public string ProductId { get; set; }
         public string Title { get; set; }
         public string Subtitle { get; set; }
         public string Content { get; set; }

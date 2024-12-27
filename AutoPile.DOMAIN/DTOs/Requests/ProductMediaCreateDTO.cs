@@ -9,7 +9,6 @@ namespace AutoPile.DOMAIN.DTOs.Requests
 {
     public class ProductMediaCreateDTO
     {
-        public int ProductId { get; set; }
         public string Url { get; set; }
         public string FullUrl { get; set; }
         public string MediaType { get; set; }

@@ -10,7 +10,7 @@ namespace AutoPile.DOMAIN.DTOs.Responses
 {
     public class ProductResponseDTO
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ProductInfo { get; set; }
@@ -22,5 +22,6 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public Ribbon Ribbon { get; set; }
         public DateTime CreatedAt { get; set; }
         public Category Category { get; set; }
+        public List<ProductMediaResponseDTO> ProductMedias { get; set; }
     }
 }

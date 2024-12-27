@@ -8,7 +8,8 @@ namespace AutoPile.API.Validators
         public OrderItemRequestValidator()
         {
             RuleFor(x => x.ProductId)
-              .GreaterThan(0).WithMessage("Product ID must be greater than 0");
+            .NotEmpty().WithMessage("Product ID is required")
+            .Matches(@"^[0-9a-fA-F]{24}$").WithMessage("Invalid MongoDB ObjectId format for Product ID");
 
             RuleFor(x => x.ProductName)
                 .NotEmpty().WithMessage("Product name is required")
