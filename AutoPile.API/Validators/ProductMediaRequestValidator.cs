@@ -21,12 +21,8 @@ namespace AutoPile.API.Validators
     {
         public ProductMediaRequestValidator()
         {
-            RuleFor(x => x.ProductId)
-              .GreaterThan(0).WithMessage("Product ID must be greater than 0");
-
             RuleFor(x => x.Url)
-                .NotEmpty().WithMessage("URL is required")
-                .MaximumLength(500).WithMessage("URL cannot exceed 500 characters");
+            .NotEmpty().WithMessage("URL is required");
 
             RuleFor(x => x.FullUrl)
                 .NotEmpty().WithMessage("Full URL is required")

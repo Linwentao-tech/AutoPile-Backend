@@ -20,5 +20,7 @@ namespace AutoPile.DOMAIN.DTOs.Requests
         public int StockQuantity { get; set; }
         public Ribbon Ribbon { get; set; }
         public Category Category { get; set; }
+
+        public List<ProductMediaCreateDTO> ProductMedias { get; set; }
     }
 }

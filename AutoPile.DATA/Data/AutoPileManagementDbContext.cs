@@ -23,26 +23,21 @@ namespace AutoPile.DATA.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new OrderItemConfigurations());
-            modelBuilder.ApplyConfiguration(new ProductConfigurations());
+
+            modelBuilder.ApplyConfiguration(new ShoppingCartItemConfigurations());
 
             modelBuilder.Entity<Order>().HasMany(o => o.OrderItems).WithOne(o => o.Order).HasForeignKey(o => o.OrderId);
-            modelBuilder.Entity<Product>().HasMany(p => p.OrderItems).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
+
             modelBuilder.Entity<ApplicationUser>().HasMany(u => u.Orders).WithOne(u => u.User).HasForeignKey(u => u.UserId);
-            modelBuilder.Entity<Product>().HasMany(p => p.ProductMedias).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
-            modelBuilder.Entity<ApplicationUser>().HasMany(u => u.Reviews).WithOne(u => u.User).HasForeignKey(u => u.UserId);
-            modelBuilder.Entity<Product>().HasMany(p => p.Reviews).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
+
             modelBuilder.Entity<ApplicationUser>().HasMany(u => u.ShoppingCartItems).WithOne(u => u.User).HasForeignKey(u => u.UserId);
-            modelBuilder.Entity<Product>().HasMany(p => p.ShoppingCartItems).WithOne(p => p.Product).HasForeignKey(p => p.ProductId);
         }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<ApplicationRole> ApplicationRoles { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<ProductMedia> ProductMedias { get; set; }
-        public DbSet<Product> Products { get; set; }
 
-        public DbSet<Review> Reviews { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
     }
 }

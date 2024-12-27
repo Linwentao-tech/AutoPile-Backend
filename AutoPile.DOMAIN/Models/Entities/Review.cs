@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +10,12 @@ namespace AutoPile.DOMAIN.Models.Entities
 {
     public class Review
     {
-        public int Id { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId Id { get; set; }
+
         public string UserId { get; set; }
-        public int ProductId { get; set; }
+        public ObjectId ProductId { get; set; }
         public string Title { get; set; }
         public string Subtitle { get; set; }
         public string Content { get; set; }
@@ -18,7 +23,5 @@ namespace AutoPile.DOMAIN.Models.Entities
         public byte[] Image { get; set; }
         public string ImageContentType { get; set; }
         public DateTime CreatedAt { get; set; }
-        public ApplicationUser User { get; set; }
-        public Product Product { get; set; }
     }
 }

@@ -1,9 +1,11 @@
+using AutoPile.API;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Middlewares;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +32,20 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Add DbContext
 builder.Services.AddDbContext<AutoPileManagementDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+var mongoConnectionString = builder.Configuration.GetSection("MongoDb:ConnectionStrings").Value;
+var mongoDbName = builder.Configuration.GetSection("MongoDb:DatabaseName").Value;
+
+builder.Services.AddSingleton<IMongoClient>(sp =>
+    new MongoClient(mongoConnectionString));
+
+builder.Services.AddScoped(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var database = client.GetDatabase(mongoDbName);
+    return AutoPileMongoDbContext.Create(database);
+});
+
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
 .AddEntityFrameworkStores<AutoPileManagementDbContext>()
 .AddDefaultTokenProviders();

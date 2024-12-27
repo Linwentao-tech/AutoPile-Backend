@@ -12,7 +12,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         public ApplicationUser()
         {
             Orders = new List<Order>();
-            Reviews = new List<Review>();
             ShoppingCartItems = new List<ShoppingCartItem>();
         }
 
@@ -21,7 +20,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string? LastName { get; set; }
 
         public ICollection<Order> Orders { get; set; }
-        public ICollection<Review> Reviews { get; set; }
         public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
     }
 }
