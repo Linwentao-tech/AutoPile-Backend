@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class ApplicationUser : IdentityUser<string>
+    public class ApplicationUser : IdentityUser
     {
         public ApplicationUser()
         {
@@ -16,6 +16,7 @@ namespace AutoPile.DOMAIN.Models.Entities
         }
 
         public string? EmailVerifyToken { get; set; }
+        public DateTime? EmailVerifyTokenCreatedAt { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
 

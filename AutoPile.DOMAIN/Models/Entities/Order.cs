@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
@@ -30,7 +31,10 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string ShippingAddress_Country { get; set; }
         public string ShippingAddress_State { get; set; }
         public string ShippingAddress_PostalCode { get; set; }
+
+        [JsonIgnore]
         public ApplicationUser User { get; set; }
+
         public ICollection<OrderItem> OrderItems { get; set; }
     }
 }
