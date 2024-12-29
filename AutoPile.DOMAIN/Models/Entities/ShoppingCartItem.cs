@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
@@ -13,6 +14,8 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string ProductId { get; set; }
         public int Quantity { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        [JsonIgnore]
         public ApplicationUser User { get; set; }
     }
 }

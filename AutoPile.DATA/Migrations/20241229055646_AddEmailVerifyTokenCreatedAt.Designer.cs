@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoPile.DATA.Migrations
 {
     [DbContext(typeof(AutoPileManagementDbContext))]
-    [Migration("20241227162550_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241229055646_AddEmailVerifyTokenCreatedAt")]
+    partial class AddEmailVerifyTokenCreatedAt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,6 +73,9 @@ namespace AutoPile.DATA.Migrations
 
                     b.Property<string>("EmailVerifyToken")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EmailVerifyTokenCreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");

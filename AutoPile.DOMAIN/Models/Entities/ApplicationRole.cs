@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class ApplicationRole : IdentityRole<string>
+    public class ApplicationRole : IdentityRole
     {
     }
 }
