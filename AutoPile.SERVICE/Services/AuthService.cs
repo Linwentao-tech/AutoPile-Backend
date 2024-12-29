@@ -224,5 +224,27 @@ namespace AutoPile.SERVICE.Services
                 throw new Exception($"Password reset failed: {errors}");
             }
         }
+
+        public async Task ValidatePasswordResetTokenAsync(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                throw new BadRequestException("Email and token are required");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email)
+                ?? throw new NotFoundException($"User with email {email} not found");
+
+            bool isValid = await _userManager.VerifyUserTokenAsync(
+                user,
+                _userManager.Options.Tokens.PasswordResetTokenProvider,
+                UserManager<IdentityUser>.ResetPasswordTokenPurpose,
+                token
+            );
+            if (!isValid)
+            {
+                throw new BadRequestException("Token expired or invalid");
+            }
+        }
     }
 }

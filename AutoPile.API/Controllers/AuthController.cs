@@ -77,5 +77,12 @@ namespace AutoPile.API.Controllers
             await _authService.ResetPasswordAsync(userResetPasswordDTO);
             return Ok(new { message = "Password successfully reset" });
         }
+
+        [HttpPost("ValidatePasswordResetToken", Name = "ValidatePasswordResetTokenAsync")]
+        public async Task<IActionResult> ValidatePasswordResetToken([FromBody] ValidateTokenRequest validateTokenRequest)
+        {
+            await _authService.ValidatePasswordResetTokenAsync(validateTokenRequest.Email, validateTokenRequest.Token);
+            return Ok(new { message = "Token valid" });
+        }
     }
 }
