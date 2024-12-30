@@ -31,6 +31,7 @@ namespace AutoPile.SERVICE.Services
             }
             var shoppingCartItem = _mapper.Map<ShoppingCartItem>(shoppingCartItemRequest);
             shoppingCartItem.UserId = applicationUserId;
+            shoppingCartItem.CreatedAt = DateTime.UtcNow;
             await _context.ShoppingCartItems.AddAsync(shoppingCartItem);
             await _context.SaveChangesAsync();
             var shoppingCartItemDTO = _mapper.Map<ShoppingCartItemResponseDTO>(shoppingCartItem);

@@ -1,5 +1,6 @@
 ﻿using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
+using AutoPile.DOMAIN.Models;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +33,7 @@ namespace AutoPile.API.Controllers
             var userId = HttpContext.Items["UserId"]?.ToString();
             var shoppingCartItemResponseDTO = await _shoppingCartItemService.GetShoppingCartItemById(id, userId);
             _logger.LogInformation("Shopping Cart Item retrieved successfully:{ShoppingCartItem}", shoppingCartItemResponseDTO);
-            return Ok(shoppingCartItemResponseDTO);
+            return ApiResponse<ShoppingCartItemResponseDTO>.OkResult(shoppingCartItemResponseDTO);
         }
 
         [HttpPost("AddShoppingCartItem", Name = "AddShoppingCartItem")]
@@ -41,8 +42,8 @@ namespace AutoPile.API.Controllers
         {
             var userId = HttpContext.Items["UserId"]?.ToString();
             var shoppingCartItem = await _shoppingCartItemService.CreateShoppingCartItemAsync(shoppingCartItemResponseDTO, userId);
-            _logger.LogInformation("Shopping Cart Item created successfully:{ShoppingCartItem}", shoppingCartItemResponseDTO);
-            return Ok(shoppingCartItem);
+            _logger.LogInformation("Shopping Cart Item created successfully:{ShoppingCartItem}", shoppingCartItem);
+            return ApiResponse<ShoppingCartItemResponseDTO>.OkResult(shoppingCartItem);
         }
 
         [HttpDelete("{id}", Name = "DeleteShoppingCartItem")]
@@ -52,7 +53,7 @@ namespace AutoPile.API.Controllers
             var userId = HttpContext.Items["UserId"]?.ToString();
             await _shoppingCartItemService.DeleteShoppingCartItemAsync(id, userId);
             _logger.LogInformation("Shopping Cart Item deleted successfully with Id {id}", id);
-            return NoContent();
+            return ApiResponse.OkResult();
         }
 
         [HttpPatch("{id}", Name = "UpdateShoppingCartItem")]
@@ -62,7 +63,7 @@ namespace AutoPile.API.Controllers
             var userId = HttpContext.Items["UserId"]?.ToString();
             await _shoppingCartItemService.UpdateShoppingCartItemAsync(updateShoppingCartItemDto, shoppingCartItemId, userId);
             _logger.LogInformation("Shopping Cart Item updated successfully with Id {id}", shoppingCartItemId);
-            return NoContent();
+            return ApiResponse.OkResult();
         }
     }
 }
