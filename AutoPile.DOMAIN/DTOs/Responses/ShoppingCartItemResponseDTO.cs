@@ -14,6 +14,5 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public string ProductId { get; set; }
         public int Quantity { get; set; }
         public DateTime CreatedAt { get; set; }
-        public ProductResponseDTO Product { get; set; }
     }
 }

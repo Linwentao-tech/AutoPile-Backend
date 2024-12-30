@@ -18,7 +18,7 @@ namespace AutoPile.SERVICE.Services
             _context = context;
         }
 
-        public async Task<ShoppingCartItemResponseDTO> CreateShoppingCartItemAsync(ShoppingCartItemRequestDto shoppingCartItemRequest, string? applicationUserId)
+        public async Task<ShoppingCartItemResponseDTO> CreateShoppingCartItemAsync(ShoppingCartItemRequestDto shoppingCartItemRequest, string applicationUserId)
         {
             if (string.IsNullOrEmpty(applicationUserId))
             {
@@ -37,17 +37,25 @@ namespace AutoPile.SERVICE.Services
             return shoppingCartItemDTO;
         }
 
-        public async Task DeleteShoppingCartItemAsync(int shoppingCartItemId)
+        public async Task DeleteShoppingCartItemAsync(int shoppingCartItemId, string applicationUserId)
         {
             var shoppingCartItem = await _context.ShoppingCartItems.FindAsync(shoppingCartItemId) ?? throw new NotFoundException($"Shopping cart item with Id {shoppingCartItemId} is not found");
+            if (shoppingCartItem.UserId != applicationUserId)
+            {
+                throw new UnauthorizedException("You are not authorized to delete this shopping cart item");
+            }
             _context.ShoppingCartItems.Remove(shoppingCartItem);
             await _context.SaveChangesAsync();
             return;
         }
 
-        public async Task<ShoppingCartItemResponseDTO> GetShoppingCartItemById(int shoppingCartItemId)
+        public async Task<ShoppingCartItemResponseDTO> GetShoppingCartItemById(int shoppingCartItemId, string applicationUserId)
         {
             var shoppingCartItem = await _context.ShoppingCartItems.FindAsync(shoppingCartItemId) ?? throw new NotFoundException($"Shopping cart item with Id {shoppingCartItemId} is not found");
+            if (shoppingCartItem.UserId != applicationUserId)
+            {
+                throw new UnauthorizedException("You are not authorized to see this shopping cart item");
+            }
             return _mapper.Map<ShoppingCartItemResponseDTO>(shoppingCartItem);
         }
 

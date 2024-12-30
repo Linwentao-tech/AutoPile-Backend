@@ -2,6 +2,7 @@
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,14 +26,17 @@ namespace AutoPile.API.Controllers
         }
 
         [HttpGet("{id}", Name = "GetShoppingCartItemById")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetShoppingCartItemById(int id)
         {
-            var shoppingCartItemResponseDTO = await _shoppingCartItemService.GetShoppingCartItemById(id);
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            var shoppingCartItemResponseDTO = await _shoppingCartItemService.GetShoppingCartItemById(id, userId);
             _logger.LogInformation("Shopping Cart Item retrieved successfully:{ShoppingCartItem}", shoppingCartItemResponseDTO);
             return Ok(shoppingCartItemResponseDTO);
         }
 
         [HttpPost("AddShoppingCartItem", Name = "AddShoppingCartItem")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> CreateShoppingCartItem([FromBody] ShoppingCartItemRequestDto shoppingCartItemResponseDTO)
         {
             var userId = HttpContext.Items["UserId"]?.ToString();
@@ -42,14 +46,17 @@ namespace AutoPile.API.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteShoppingCartItem")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> DeleteShoppingCartItem(int id)
         {
-            await _shoppingCartItemService.DeleteShoppingCartItemAsync(id);
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            await _shoppingCartItemService.DeleteShoppingCartItemAsync(id, userId);
             _logger.LogInformation("Shopping Cart Item deleted successfully with Id {id}", id);
             return NoContent();
         }
 
         [HttpPatch("{id}", Name = "UpdateShoppingCartItem")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> UpdateShoppingCartItem([FromBody] UpdateShoppingCartItemDto updateShoppingCartItemDto, int shoppingCartItemId)
         {
             var userId = HttpContext.Items["UserId"]?.ToString();

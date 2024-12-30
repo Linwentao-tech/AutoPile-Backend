@@ -5,11 +5,11 @@ namespace AutoPile.SERVICE.Services
 {
     public interface IShoppingCartItemService
     {
-        Task<ShoppingCartItemResponseDTO> CreateShoppingCartItemAsync(ShoppingCartItemRequestDto shoppingCartItemRequest, string? applicationUserId);
+        Task<ShoppingCartItemResponseDTO> CreateShoppingCartItemAsync(ShoppingCartItemRequestDto shoppingCartItemRequest, string applicationUserId);
 
-        Task DeleteShoppingCartItemAsync(int shoppingCartItemId);
+        Task DeleteShoppingCartItemAsync(int shoppingCartItemId, string applicationUserId);
 
-        Task<ShoppingCartItemResponseDTO> GetShoppingCartItemById(int shoppingCartItemId);
+        Task<ShoppingCartItemResponseDTO> GetShoppingCartItemById(int shoppingCartItemId, string applicationUserId);
 
         Task UpdateShoppingCartItemAsync(UpdateShoppingCartItemDto updateShoppingCartItemDto, int shoppingCartItemId, string? applicationUserId);
     }
