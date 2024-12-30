@@ -1,4 +1,6 @@
 ﻿using AutoPile.DOMAIN.DTOs.Requests;
+using AutoPile.DOMAIN.DTOs.Responses;
+using AutoPile.DOMAIN.Models;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
 using AutoPile.SERVICE.Utilities;
@@ -24,28 +26,32 @@ namespace AutoPile.API.Controllers
         public async Task<IActionResult> Signup([FromBody] UserSignupDTO userSignupDTO)
         {
             var userResponseDTO = await _authService.SignupAsync(userSignupDTO);
-            return Ok(userResponseDTO);
+            return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
         [HttpPost("Signin", Name = "Signin")]
         public async Task<IActionResult> Signin([FromBody] UserSigninDTO userSigninDTO)
         {
             var userResponseDTO = await _authService.SigninAsync(userSigninDTO);
-            return Ok(userResponseDTO);
+            return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
         [HttpGet("GetUserInfoById", Name = "GetUserInfoById")]
-        public async Task<IActionResult> GetUserInfoById(string userId)
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetUserInfoById()
         {
+            var userId = HttpContext.Items["UserId"]?.ToString();
             var userInfoResponseDTO = await _authService.GetUserInfoAsync(userId);
-            return Ok(userInfoResponseDTO);
+            return ApiResponse<UserInfoResponseDTO>.OkResult(userInfoResponseDTO);
         }
 
         [HttpGet("SendEmailConfirmationLink", Name = "SendEmailConfirmationLink")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> SendEmailConfirmationLink([FromQuery] string email)
         {
-            var token = await _authService.SendEmailConfirmationTokenAsync(email);
-            return Ok(token);
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            var token = await _authService.SendEmailConfirmationTokenAsync(email, userId);
+            return ApiResponse<object>.OkResult(new { token });
         }
 
         [HttpGet("VerifyEmailConfirmationLink", Name = "VerifyEmailConfirmationLink")]
@@ -61,28 +67,30 @@ namespace AutoPile.API.Controllers
         {
             var userId = HttpContext.Items["UserId"]?.ToString();
             await _authService.UpdateUserInfoAsync(userUpdateInfoDTO, userId);
-            return Ok(new { message = "User info successfully updated" });
+            return ApiResponse.OkResult("User info successfully updated");
         }
 
         [HttpGet("SendResetPasswordToken", Name = "SendResetPasswordToken")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> SendResetPasswordToken([FromQuery] string email)
         {
-            var token = await _authService.SendResetPasswordTokenAsync(email);
-            return Ok(token);
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            var token = await _authService.SendResetPasswordTokenAsync(email, userId);
+            return ApiResponse<object>.OkResult(new { token });
         }
 
         [HttpPost("ResetPassword", Name = "ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] UserResetPasswordDTO userResetPasswordDTO)
         {
             await _authService.ResetPasswordAsync(userResetPasswordDTO);
-            return Ok(new { message = "Password successfully reset" });
+            return ApiResponse.OkResult("Password successfully reset");
         }
 
         [HttpPost("ValidatePasswordResetToken", Name = "ValidatePasswordResetTokenAsync")]
         public async Task<IActionResult> ValidatePasswordResetToken([FromBody] ValidateTokenRequest validateTokenRequest)
         {
             await _authService.ValidatePasswordResetTokenAsync(validateTokenRequest.Email, validateTokenRequest.Token);
-            return Ok(new { message = "Token valid" });
+            return ApiResponse.OkResult("Token successfully validate");
         }
     }
 }

@@ -105,14 +105,17 @@ namespace AutoPile.SERVICE.Services
             return userInfoResponseDTO;
         }
 
-        public async Task<string> SendEmailConfirmationTokenAsync(string email)
+        public async Task<string> SendEmailConfirmationTokenAsync(string email, string userId)
         {
             if (string.IsNullOrEmpty(email))
             {
                 throw new BadRequestException("Email is required");
             }
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
-
+            if (user.Id != userId)
+            {
+                throw new UnauthorizedException();
+            }
             var isConfirmed = await _userManager.IsEmailConfirmedAsync(user);
             if (isConfirmed)
             {
@@ -190,13 +193,17 @@ namespace AutoPile.SERVICE.Services
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task<string> SendResetPasswordTokenAsync(string email)
+        public async Task<string> SendResetPasswordTokenAsync(string email, string userId)
         {
             if (string.IsNullOrEmpty(email))
             {
                 throw new BadRequestException("email is required");
             }
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
+            if (user.Id != userId)
+            {
+                throw new UnauthorizedException();
+            }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
             var emailConfirmationUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
@@ -217,6 +224,7 @@ namespace AutoPile.SERVICE.Services
         public async Task ResetPasswordAsync(UserResetPasswordDTO userResetPasswordDTO)
         {
             var user = await _userManager.FindByEmailAsync(userResetPasswordDTO.Email) ?? throw new NotFoundException($"User with email {userResetPasswordDTO.Email} not found");
+
             var result = await _userManager.ResetPasswordAsync(user, userResetPasswordDTO.EmailVerifyToken, userResetPasswordDTO.NewPassword);
             if (!result.Succeeded)
             {

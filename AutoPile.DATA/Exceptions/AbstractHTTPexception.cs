@@ -22,8 +22,8 @@ namespace AutoPile.DATA.Exceptions
 
             var response = new
             {
+                Code = StatusCode,
                 Success = false,
-                StatusCode,
                 base.Message,
             };
             return context.Response.WriteAsync(JsonConvert.SerializeObject(response));

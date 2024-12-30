@@ -12,13 +12,13 @@ namespace AutoPile.SERVICE.Services
 
         Task<UserInfoResponseDTO> GetUserInfoAsync(string userId);
 
-        Task<string> SendEmailConfirmationTokenAsync(string email);
+        Task<string> SendEmailConfirmationTokenAsync(string email, string userId);
 
         Task<bool> VerifyEmailConfirmationTokenAsync(string email, string token);
 
         Task UpdateUserInfoAsync(UserUpdateInfoDTO userUpdateInfoDTO, string userId);
 
-        Task<string> SendResetPasswordTokenAsync(string email);
+        Task<string> SendResetPasswordTokenAsync(string email, string userId);
 
         Task ResetPasswordAsync(UserResetPasswordDTO userResetPasswordDTO);
 

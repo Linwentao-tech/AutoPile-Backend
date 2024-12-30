@@ -46,8 +46,9 @@ namespace AutoPile.DATA.Middlewares
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             var response = new
             {
-                StatusCodes = (int)HttpStatusCode.InternalServerError,
+                Code = (int)HttpStatusCode.InternalServerError,
                 Message = "Internal Server Error",
+                Success = false,
                 Detailed = ex.Message
             };
             return context.Response.WriteAsync(JsonConvert.SerializeObject(response));

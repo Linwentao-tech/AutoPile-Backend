@@ -8,11 +8,11 @@ namespace AutoPile.DATA.Exceptions
 {
     public class UnauthorizedException : AbstractHTTPexception
     {
-        public UnauthorizedException() : base(401, "Unauthorized ")
+        public UnauthorizedException() : base(401, "Unauthorized")
         {
         }
 
-        public UnauthorizedException(string message) : base(400, message)
+        public UnauthorizedException(string message) : base(401, message)
         {
         }
     }
