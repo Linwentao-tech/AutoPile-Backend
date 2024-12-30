@@ -58,11 +58,11 @@ namespace AutoPile.API.Controllers
 
         [HttpPatch("{id}", Name = "UpdateShoppingCartItem")]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> UpdateShoppingCartItem([FromBody] UpdateShoppingCartItemDto updateShoppingCartItemDto, int shoppingCartItemId)
+        public async Task<IActionResult> UpdateShoppingCartItem([FromBody] UpdateShoppingCartItemDto updateShoppingCartItemDto, int id)
         {
             var userId = HttpContext.Items["UserId"]?.ToString();
-            await _shoppingCartItemService.UpdateShoppingCartItemAsync(updateShoppingCartItemDto, shoppingCartItemId, userId);
-            _logger.LogInformation("Shopping Cart Item updated successfully with Id {id}", shoppingCartItemId);
+            await _shoppingCartItemService.UpdateShoppingCartItemAsync(updateShoppingCartItemDto, id, userId);
+            _logger.LogInformation("Shopping Cart Item updated successfully with Id {id}", id);
             return ApiResponse.OkResult();
         }
     }
