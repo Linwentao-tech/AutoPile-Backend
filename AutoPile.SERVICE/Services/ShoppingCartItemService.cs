@@ -32,8 +32,6 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("Invalid product ID format");
             }
-
-            // Find product using ObjectId
             _ = await _mongoContext.Products.FindAsync(productObjectId)
                 ?? throw new NotFoundException($"Product with ID {shoppingCartItemRequest.ProductId} not found");
             var shoppingCartItem = _mapper.Map<ShoppingCartItem>(shoppingCartItemRequest);
