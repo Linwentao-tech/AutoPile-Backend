@@ -1,5 +1,6 @@
 ﻿using AutoPile.DOMAIN.DTOs.Requests;
 using FluentValidation;
+using MongoDB.Bson;
 
 namespace AutoPile.API.Validators
 {
@@ -10,7 +11,7 @@ namespace AutoPile.API.Validators
             RuleFor(x => x.ProductId)
             .NotEmpty()
             .WithMessage("Product ID is required.")
-            .Matches(@"^[0-9a-fA-F]{24}$")
+            .Must(BeValidObjectId)
             .WithMessage("Invalid MongoDB ObjectId format for Product ID");
 
             RuleFor(x => x.Quantity)
@@ -20,6 +21,11 @@ namespace AutoPile.API.Validators
                 .WithMessage("Quantity must be greater than 0.")
                 .LessThanOrEqualTo(100)
                 .WithMessage("Quantity cannot exceed 100 items per order.");
+        }
+
+        private bool BeValidObjectId(string productId)
+        {
+            return !string.IsNullOrEmpty(productId) && ObjectId.TryParse(productId, out _);
         }
     }
 
