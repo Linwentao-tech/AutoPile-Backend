@@ -1,4 +1,6 @@
 ﻿using AutoPile.DOMAIN.Enum;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +14,12 @@ namespace AutoPile.DOMAIN.Models.Entities
         public Product()
         {
             ProductMedias = new List<ProductMedia>();
-            OrderItems = new List<OrderItem>();
-            Reviews = new List<Review>();
-            ShoppingCartItems = new List<ShoppingCartItem>();
         }
 
-        public int Id { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId Id { get; set; }
+
         public string Name { get; set; }
         public string Description { get; set; }
         public string ProductInfo { get; set; }
@@ -29,10 +31,11 @@ namespace AutoPile.DOMAIN.Models.Entities
         public Ribbon Ribbon { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public ICollection<ProductMedia> ProductMedias { get; set; }
-        public ICollection<OrderItem> OrderItems { get; set; }
-        public ICollection<Review> Reviews { get; set; }
-        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
+        public List<ProductMedia> ProductMedias { get; set; }
+
+        //public ICollection<OrderItem> OrderItems { get; set; }
+        //public ICollection<Review> Reviews { get; set; }
+        //public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
         public Category Category { get; set; }
     }
 }

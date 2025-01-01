@@ -7,21 +7,20 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.Models.Entities
 {
-    public class ApplicationUser : IdentityUser<string>
+    public class ApplicationUser : IdentityUser
     {
         public ApplicationUser()
         {
             Orders = new List<Order>();
-            Reviews = new List<Review>();
             ShoppingCartItems = new List<ShoppingCartItem>();
         }
 
         public string? EmailVerifyToken { get; set; }
+        public DateTime? EmailVerifyTokenCreatedAt { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
 
         public ICollection<Order> Orders { get; set; }
-        public ICollection<Review> Reviews { get; set; }
         public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
     }
 }

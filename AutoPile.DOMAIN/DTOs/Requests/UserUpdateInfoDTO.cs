@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DOMAIN.DTOs.Requests
 {
-    public class UserUpdateInfoDto
+    public class UserUpdateInfoDTO
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
