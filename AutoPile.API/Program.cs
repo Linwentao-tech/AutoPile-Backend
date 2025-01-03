@@ -106,9 +106,14 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AutoPileManagementDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-var mongoConnectionString = Environment.GetEnvironmentVariable("MongoDb") ?? builder.Configuration.GetSection("MongoDb:ConnectionStrings").Value;
+var mongoConnectionString = Environment.GetEnvironmentVariable("MongoDB") ??
+                          Environment.GetEnvironmentVariable("MongoDB_ConnectionStrings") ??
+                          builder.Configuration.GetSection("MongoDb:ConnectionStrings").Value;
 var mongoDbName = "AutoPileDb";
-
+if (string.IsNullOrEmpty(mongoConnectionString))
+{
+    throw new InvalidOperationException("MongoDB connection string not found in configuration");
+}
 builder.Services.AddSingleton<IMongoClient>(sp =>
     new MongoClient(mongoConnectionString));
 
