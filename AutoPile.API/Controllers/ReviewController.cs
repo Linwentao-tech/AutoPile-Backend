@@ -41,10 +41,21 @@ namespace AutoPile.API.Controllers
         [Authorize(Roles = "User")]
         public async Task<IActionResult> CreateReview(ReviewCreateDTO reviewCreateDTO)
         {
-            var userId = HttpContext.Items["UserId"]?.ToString();
-            var responseReviewDTO = await _reviewService.CreateReviewAsync(reviewCreateDTO, userId);
-            _logger.LogInformation("Review created successfully with ID {ReviewId}", responseReviewDTO.Id);
-            return ApiResponse<ReviewResponseDTO>.OkResult(responseReviewDTO);
+            try
+            {
+                var userId = HttpContext.Items["UserId"]?.ToString();
+                _logger.LogInformation($"Attempting to create review with userId: {userId}");
+
+                var responseReviewDTO = await _reviewService.CreateReviewAsync(reviewCreateDTO, userId);
+                _logger.LogInformation($"Review created successfully with ID {responseReviewDTO.Id}");
+
+                return ApiResponse<ReviewResponseDTO>.OkResult(responseReviewDTO);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating review");
+                throw;
+            }
         }
 
         /// <summary>
