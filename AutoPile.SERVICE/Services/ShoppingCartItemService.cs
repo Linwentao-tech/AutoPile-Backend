@@ -48,7 +48,7 @@ namespace AutoPile.SERVICE.Services
             var shoppingCartItem = await _context.ShoppingCartItems.FindAsync(shoppingCartItemId) ?? throw new NotFoundException($"Shopping cart item with Id {shoppingCartItemId} is not found");
             if (shoppingCartItem.UserId != applicationUserId)
             {
-                throw new UnauthorizedException("You are not authorized to delete this shopping cart item");
+                throw new ForbiddenException("You are not authorized to delete this shopping cart item");
             }
             _context.ShoppingCartItems.Remove(shoppingCartItem);
             await _context.SaveChangesAsync();
@@ -60,7 +60,7 @@ namespace AutoPile.SERVICE.Services
             var shoppingCartItem = await _context.ShoppingCartItems.FindAsync(shoppingCartItemId) ?? throw new NotFoundException($"Shopping cart item with Id {shoppingCartItemId} is not found");
             if (shoppingCartItem.UserId != applicationUserId)
             {
-                throw new UnauthorizedException("You are not authorized to see this shopping cart item");
+                throw new ForbiddenException("You are not authorized to see this shopping cart item");
             }
             return _mapper.Map<ShoppingCartItemResponseDTO>(shoppingCartItem);
         }
@@ -75,7 +75,7 @@ namespace AutoPile.SERVICE.Services
             var shoppingCartItem = await _context.ShoppingCartItems.FindAsync(shoppingCartItemId) ?? throw new NotFoundException($"Shopping cart item with Id {shoppingCartItemId} is not found");
             if (shoppingCartItem.UserId != applicationUserId)
             {
-                throw new UnauthorizedException("You are not authorized to modify this shopping cart item");
+                throw new ForbiddenException("You are not authorized to modify this shopping cart item");
             }
             _mapper.Map(updateShoppingCartItemDto, shoppingCartItem);
             _context.ShoppingCartItems.Update(shoppingCartItem);

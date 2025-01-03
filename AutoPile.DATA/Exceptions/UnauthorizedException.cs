@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace AutoPile.DATA.Exceptions
 {
-    public class UnauthorizedException : AbstractHTTPexception
+    public class ForbiddenException : AbstractHTTPexception
     {
-        public UnauthorizedException() : base(401, "Unauthorized")
+        public ForbiddenException() : base(403, "Forbidden")
         {
         }
 
-        public UnauthorizedException(string message) : base(401, message)
+        public ForbiddenException(string message) : base(403, message)
         {
         }
     }

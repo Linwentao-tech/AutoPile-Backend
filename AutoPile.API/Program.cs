@@ -83,6 +83,8 @@ builder.Services.AddScoped<IShoppingCartItemService, ShoppingCartItemService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IBlobService, BlobService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();

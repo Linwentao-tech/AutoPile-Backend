@@ -8,14 +8,12 @@ namespace AutoPile.API.Validators
         public ReviewUpdateValidator()
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
                 .MaximumLength(200).WithMessage("Title cannot exceed 200 characters");
 
             RuleFor(x => x.Subtitle)
                 .MaximumLength(500).WithMessage("Subtitle cannot exceed 500 characters");
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage("Content is required")
                 .MinimumLength(10).WithMessage("Content must be at least 10 characters long")
                 .MaximumLength(5000).WithMessage("Content cannot exceed 5000 characters");
 

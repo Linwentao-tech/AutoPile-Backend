@@ -15,9 +15,8 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public string Subtitle { get; set; }
         public string Content { get; set; }
         public int Rating { get; set; }
-        public ReviewImageDTO Image { get; set; }
+        public string ImageUrl { get; set; }
         public DateTime CreatedAt { get; set; }
-        public UserResponseDTO User { get; set; }
-        public ProductResponseDTO Product { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
