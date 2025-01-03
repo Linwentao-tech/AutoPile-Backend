@@ -131,11 +131,9 @@ namespace AutoPile.API.Controllers
         /// <response code="401">If the user is not authorized</response>
         /// <response code="400">If the email is invalid</response>
         [HttpGet("SendResetPasswordToken", Name = "SendResetPasswordToken")]
-        [Authorize(Roles = "User")]
         public async Task<IActionResult> SendResetPasswordToken([FromQuery] string email)
         {
-            var userId = HttpContext.Items["UserId"]?.ToString();
-            var token = await _authService.SendResetPasswordTokenAsync(email, userId);
+            var token = await _authService.SendResetPasswordTokenAsync(email);
             return ApiResponse<object>.OkResult(new { token });
         }
 
