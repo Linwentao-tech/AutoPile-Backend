@@ -18,7 +18,7 @@ namespace AutoPile.SERVICE.Services
 
         Task UpdateUserInfoAsync(UserUpdateInfoDTO userUpdateInfoDTO, string userId);
 
-        Task<string> SendResetPasswordTokenAsync(string email, string userId);
+        Task<string> SendResetPasswordTokenAsync(string email);
 
         Task ResetPasswordAsync(UserResetPasswordDTO userResetPasswordDTO);
 
