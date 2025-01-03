@@ -28,7 +28,10 @@ namespace AutoPile.SERVICE.Services
 
         public BlobService(IConfiguration configuration)
         {
-            _blobServiceClient = new BlobServiceClient(Environment.GetEnvironmentVariable("BlobStorage"));
+            string connectionString = Environment.GetEnvironmentVariable("BlobStorage")
+        ?? configuration["Azure:BlobStorage:ConnectionString"]
+        ?? throw new InvalidOperationException("Blob storage connection string not configured");
+            _blobServiceClient = new BlobServiceClient(connectionString);
         }
 
         public async Task<string> UploadImageAsync(IFormFile file)
