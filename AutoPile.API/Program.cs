@@ -106,8 +106,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AutoPileManagementDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-var mongoConnectionString = builder.Configuration.GetSection("MongoDb:ConnectionStrings").Value;
-var mongoDbName = builder.Configuration.GetSection("MongoDb:DatabaseName").Value;
+var mongoConnectionString = Environment.GetEnvironmentVariable("MongoDb") ?? builder.Configuration.GetSection("MongoDb:ConnectionStrings").Value;
+var mongoDbName = "AutoPileDb";
 
 builder.Services.AddSingleton<IMongoClient>(sp =>
     new MongoClient(mongoConnectionString));
