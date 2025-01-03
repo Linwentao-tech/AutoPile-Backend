@@ -28,8 +28,7 @@ namespace AutoPile.SERVICE.Services
 
         public BlobService(IConfiguration configuration)
         {
-            string connectionString = Environment.GetEnvironmentVariable("BlobStorage")
-        ?? configuration["Azure:BlobStorage:ConnectionString"]
+            string connectionString = Environment.GetEnvironmentVariable("BlobStorage") ?? configuration["Azure:BlobStorage:ConnectionString"]
         ?? throw new InvalidOperationException("Blob storage connection string not configured");
             _blobServiceClient = new BlobServiceClient(connectionString);
         }
