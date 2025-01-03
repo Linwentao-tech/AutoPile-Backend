@@ -19,16 +19,16 @@ namespace AutoPile.API.Mapping
 
         public MappingProfile()
         {
-            CreateMap<ReviewCreateDTO, Review>()
-                .ForMember(dest => dest.ImageContentType, opt => opt.MapFrom(src => src.Image != null ? src.Image.ContentType : null))
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => ConvertFromFiletoArray(src.Image)));
-            CreateMap<Review, ReviewResponseDTO>()
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(src =>
-                    src.Image != null ? new ReviewImageDTO
-                    {
-                        Image = src.Image,
-                        ImageContentType = src.ImageContentType,
-                    } : null));
+            CreateMap<ReviewCreateDTO, Review>().ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            //.ForMember(dest => dest.ImageContentType, opt => opt.MapFrom(src => src.Image != null ? src.Image.ContentType : null))
+            //.ForMember(dest => dest.Image, opt => opt.MapFrom(src => ConvertFromFiletoArray(src.Image)));
+            CreateMap<Review, ReviewResponseDTO>();
+            //.ForMember(dest => dest.Image, opt => opt.MapFrom(src =>
+            //    src.Image != null ? new ReviewImageDTO
+            //    {
+            //        Image = src.Image,
+            //        ImageContentType = src.ImageContentType,
+            //    } : null));
             CreateMap<ProductMediaCreateDTO, ProductMedia>();
             CreateMap<ProductMedia, ProductMediaResponseDTO>();
             CreateMap<ProductCreateDTO, Product>();
@@ -47,9 +47,10 @@ namespace AutoPile.API.Mapping
             CreateMap<ShoppingCartItemRequestDto, ShoppingCartItem>();
             CreateMap<ShoppingCartItem, ShoppingCartItemResponseDTO>();
             CreateMap<UpdateShoppingCartItemDto, ShoppingCartItem>();
-            CreateMap<ReviewUpdateDTO, Review>()
-                .ForMember(dest => dest.ImageContentType, opt => opt.MapFrom(src => src.Image != null ? src.Image.ContentType : null))
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => ConvertFromFiletoArray(src.Image))); ;
+            CreateMap<ReviewUpdateDTO, Review>();
+
+            //.ForMember(dest => dest.ImageContentType, opt => opt.MapFrom(src => src.Image != null ? src.Image.ContentType : null))
+            //.ForMember(dest => dest.Image, opt => opt.MapFrom(src => ConvertFromFiletoArray(src.Image))); ;
             CreateMap<ProductMediaUpdateDto, ProductMedia>();
             CreateMap<OrderItemUpdateDTO, OrderItem>();
             CreateMap<OrderUpdateValidator, Order>();

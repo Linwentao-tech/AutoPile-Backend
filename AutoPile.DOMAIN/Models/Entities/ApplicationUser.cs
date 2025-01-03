@@ -19,7 +19,6 @@ namespace AutoPile.DOMAIN.Models.Entities
         public DateTime? EmailVerifyTokenCreatedAt { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-
         public ICollection<Order> Orders { get; set; }
         public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; }
     }

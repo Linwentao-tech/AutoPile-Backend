@@ -91,7 +91,7 @@ namespace AutoPile.SERVICE.Services
 
                 return userResponseDTO;
             }
-            throw new UnauthorizedException("Email does not exist or incorrect password");
+            throw new NotFoundException("Email does not exist or incorrect password");
         }
 
         public async Task<UserInfoResponseDTO> GetUserInfoAsync(string userId)
@@ -114,7 +114,7 @@ namespace AutoPile.SERVICE.Services
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
             if (user.Id != userId)
             {
-                throw new UnauthorizedException();
+                throw new ForbiddenException();
             }
             var isConfirmed = await _userManager.IsEmailConfirmedAsync(user);
             if (isConfirmed)
@@ -185,7 +185,7 @@ namespace AutoPile.SERVICE.Services
         {
             if (userId == null)
             {
-                throw new UnauthorizedException("User ID not found in token.");
+                throw new NotFoundException("User ID not found in token.");
             }
 
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException("User not found");
@@ -202,7 +202,7 @@ namespace AutoPile.SERVICE.Services
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
             if (user.Id != userId)
             {
-                throw new UnauthorizedException();
+                throw new ForbiddenException();
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -229,7 +229,7 @@ namespace AutoPile.SERVICE.Services
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception($"Password reset failed: {errors}");
+                throw new BadRequestException($"Password reset failed: {errors}");
             }
         }
 
