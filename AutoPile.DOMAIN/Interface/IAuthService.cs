@@ -6,7 +6,9 @@ namespace AutoPile.SERVICE.Services
 {
     public interface IAuthService
     {
-        Task<UserResponseDTO> SignupAsync([FromBody] UserSignupDTO userSignupDTO);
+        Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO);
+
+        Task<UserResponseDTO> SignupUserAsync([FromBody] UserSignupDTO userSignupDTO);
 
         Task<UserResponseDTO> SigninAsync(UserSigninDTO userSigninDTO);
 

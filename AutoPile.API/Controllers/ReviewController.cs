@@ -101,7 +101,7 @@ namespace AutoPile.API.Controllers
         /// <response code="403">If the user is not authorized to update the review</response>
         /// <response code="404">If the review is not found</response>
         [HttpPatch("{id}", Name = "UpdateReviewByReviewId")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> UpdateReview(ReviewUpdateDTO reviewUpdateDTO, string id)
         {
             var userId = HttpContext.Items["UserId"]?.ToString();
@@ -120,7 +120,7 @@ namespace AutoPile.API.Controllers
         /// <response code="403">If the user is not authorized to delete the review</response>
         /// <response code="404">If the review is not found</response>
         [HttpDelete("{id}", Name = "DeleteReviewByReviewId")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> DeleteReview(string id)
         {
             var userId = HttpContext.Items["UserId"]?.ToString();

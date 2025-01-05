@@ -36,10 +36,24 @@ namespace AutoPile.API.Controllers
         /// <returns>The newly created user information</returns>
         /// <response code="200">Returns the newly created user</response>
         /// <response code="400">If the registration information is invalid</response>
-        [HttpPost("Signup", Name = "Signup")]
-        public async Task<IActionResult> Signup([FromBody] UserSignupDTO userSignupDTO)
+        [HttpPost("SignupUser", Name = "SignupUser")]
+        public async Task<IActionResult> SignupUser([FromBody] UserSignupDTO userSignupDTO)
         {
-            var userResponseDTO = await _authService.SignupAsync(userSignupDTO);
+            var userResponseDTO = await _authService.SignupUserAsync(userSignupDTO);
+            return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
+        }
+
+        /// <summary>
+        /// Registers a new admin
+        /// </summary>
+        /// <param name="userSignupDTO">The admin registration information</param>
+        /// <returns>The newly created admin information</returns>
+        /// <response code="200">Returns the newly created user</response>
+        /// <response code="400">If the registration information is invalid</response>
+        [HttpPost("SignupAdmin", Name = "SignupAdmin")]
+        public async Task<IActionResult> SignupAdmin([FromBody] UserSignupDTO userSignupDTO)
+        {
+            var userResponseDTO = await _authService.SignupAdminAsync(userSignupDTO);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -65,7 +79,7 @@ namespace AutoPile.API.Controllers
         /// <response code="401">If the user is not authorized</response>
         /// <response code="404">If the user is not found</response>
         [HttpGet("GetUserInfoById", Name = "GetUserInfoById")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetUserInfoById()
         {
             var userId = HttpContext.Items["UserId"]?.ToString();

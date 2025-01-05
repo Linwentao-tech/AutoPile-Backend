@@ -2,6 +2,7 @@
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models;
 using AutoPile.SERVICE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoPile.API.Controllers
@@ -32,6 +33,7 @@ namespace AutoPile.API.Controllers
         /// <response code="200">Returns the newly created product</response>
         /// <response code="400">If the product data is invalid or SKU already exists</response>
         [HttpPost("CreateProduct", Name = "CreateProduct")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateProductAsync([FromBody] ProductCreateDTO productCreateDTO)
         {
             var productResponseDTO = await _productService.CreateProductAsync(productCreateDTO);
@@ -62,6 +64,7 @@ namespace AutoPile.API.Controllers
         /// <response code="400">If the product ID format is invalid</response>
         /// <response code="404">If the product is not found</response>
         [HttpDelete("{id}", Name = "DeleteProductById")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProductById(string id)
         {
             await _productService.DeleteProductByIdAsync(id);
@@ -82,6 +85,7 @@ namespace AutoPile.API.Controllers
         /// <response code="400">If the product ID format is invalid or update data is invalid</response>
         /// <response code="404">If the product is not found</response>
         [HttpPatch("{id}", Name = "UpdateProductById")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProductById([FromBody] ProductUpdateDTO productUpdateDTO, string id)
         {
             var product = await _productService.UpdateProductByIdAsync(productUpdateDTO, id);
