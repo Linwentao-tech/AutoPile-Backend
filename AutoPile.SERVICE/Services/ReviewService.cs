@@ -3,6 +3,7 @@ using AutoPile.DATA.Data;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
+using AutoPile.DOMAIN.Interface;
 using AutoPile.DOMAIN.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;

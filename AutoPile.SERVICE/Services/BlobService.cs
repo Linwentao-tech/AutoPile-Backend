@@ -1,4 +1,5 @@
 ﻿using AutoPile.DATA.Exceptions;
+using AutoPile.DOMAIN.Interface;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
@@ -12,15 +13,6 @@ using System.Threading.Tasks;
 
 namespace AutoPile.SERVICE.Services
 {
-    public interface IBlobService
-    {
-        Task<string> UploadImageAsync(IFormFile file);
-
-        Task DeleteImageAsync(string imageUrl);
-
-        Task<string> UpdateImageAsync(string oldImageUrl, IFormFile newFile);
-    }
-
     public class BlobService : IBlobService
     {
         private readonly BlobServiceClient _blobServiceClient;
