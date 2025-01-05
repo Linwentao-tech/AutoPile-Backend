@@ -21,6 +21,8 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public int StockQuantity { get; set; }
         public Ribbon Ribbon { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
         public Category Category { get; set; }
         public List<ProductMediaResponseDTO> ProductMedias { get; set; }
     }
