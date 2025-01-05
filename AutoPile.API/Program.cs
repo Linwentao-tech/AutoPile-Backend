@@ -2,6 +2,7 @@ using AutoPile.API;
 using AutoPile.API.Validators;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Middlewares;
+using AutoPile.DOMAIN.Interface;
 using AutoPile.DOMAIN.Models;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
@@ -85,6 +86,7 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IBlobService, BlobService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();
