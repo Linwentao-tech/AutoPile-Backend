@@ -135,7 +135,6 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddAutoMapper(typeof(Program));
-
 builder.Services.AddOptions();
 builder.Services.AddHttpClient<ResendClient>();
 builder.Services.Configure<ResendClientOptions>(o =>
