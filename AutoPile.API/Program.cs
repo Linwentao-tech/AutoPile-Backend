@@ -172,6 +172,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AutoPile API V1");
+    c.RoutePrefix = string.Empty; // This makes Swagger UI available at root
+    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+    c.DefaultModelsExpandDepth(-1); // Hide schemas section by default
+});
 
 app.UseHttpsRedirection();
 app.UseRouting();
