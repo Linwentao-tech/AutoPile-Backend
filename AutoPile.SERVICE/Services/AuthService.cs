@@ -7,6 +7,7 @@ using AutoPile.SERVICE.Utilities;
 using DnsClient.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Resend;
 using System;
@@ -35,12 +36,78 @@ namespace AutoPile.SERVICE.Services
             _configuration = configuration;
         }
 
-        public async Task<UserResponseDTO> SignupAsync(UserSignupDTO userSignupDTO)
+        public async Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
             {
                 throw new BadRequestException("Email already registered");
+            }
+
+            var existUserWithPhone = await _userManager.Users.AnyAsync(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
+            if (existUserWithPhone)
+            {
+                throw new BadRequestException("Phone number already registered");
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = userSignupDTO.UserName,
+                Email = userSignupDTO.Email,
+                FirstName = userSignupDTO.FirstName,
+                LastName = userSignupDTO.LastName,
+                PhoneNumber = userSignupDTO.PhoneNumber,
+                EmailConfirmed = true,
+                PhoneNumberConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, userSignupDTO.Password);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                throw new BadRequestException($"Failed to create user: {string.Join(", ", errors)}");
+            }
+
+            var addToAdminResult = await _userManager.AddToRoleAsync(user, "Admin");
+            if (!addToAdminResult.Succeeded)
+            {
+                var errors = addToAdminResult.Errors.Select(e => e.Description);
+                throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
+            }
+
+            var addToUserResult = await _userManager.AddToRoleAsync(user, "User");
+            if (!addToUserResult.Succeeded)
+            {
+                var errors = addToUserResult.Errors.Select(e => e.Description);
+                throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
+            }
+
+            var token = _jwtTokenGenerator.GenerateJwtToken(user);
+
+            var responseDTO = new UserResponseDTO
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Token = token,
+                Roles = await _userManager.GetRolesAsync(user)
+            };
+
+            return responseDTO;
+        }
+
+        public async Task<UserResponseDTO> SignupUserAsync(UserSignupDTO userSignupDTO)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
+            if (existingUser != null)
+            {
+                throw new BadRequestException("Email already registered");
+            }
+
+            var existUserWithPhone = await _userManager.Users.AnyAsync(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
+            if (existUserWithPhone)
+            {
+                throw new BadRequestException("Phone number already registered");
             }
 
             var user = new ApplicationUser
@@ -73,7 +140,8 @@ namespace AutoPile.SERVICE.Services
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Token = token
+                Token = token,
+                Roles = await _userManager.GetRolesAsync(user)
             };
 
             return responseDTO;
@@ -88,7 +156,7 @@ namespace AutoPile.SERVICE.Services
                 var token = _jwtTokenGenerator.GenerateJwtToken(user);
                 UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
                 userResponseDTO.Token = token;
-
+                userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
                 return userResponseDTO;
             }
             throw new NotFoundException("Email does not exist or incorrect password");
@@ -102,6 +170,7 @@ namespace AutoPile.SERVICE.Services
             }
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException($"User with ID {userId} not found");
             UserInfoResponseDTO userInfoResponseDTO = _mapper.Map<UserInfoResponseDTO>(user);
+            userInfoResponseDTO.Roles = await _userManager.GetRolesAsync(user);
             return userInfoResponseDTO;
         }
 
