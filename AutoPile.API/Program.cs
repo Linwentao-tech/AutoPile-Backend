@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Resend;
+using Stripe;
 using System.Reflection;
 using System.Text;
 
@@ -84,9 +85,9 @@ builder.Services.AddScoped<IShoppingCartItemService, ShoppingCartItemService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewService, AutoPile.SERVICE.Services.ReviewService>();
 builder.Services.AddScoped<IBlobService, BlobService>();
-builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductService, AutoPile.SERVICE.Services.ProductService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();
@@ -159,6 +160,7 @@ builder.Services.AddCors(options =>
                    .AllowAnyMethod();
         });
 });
+StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("StripeKey");
 
 var app = builder.Build();
 app.UseCors("AllowLocalhost3000");
