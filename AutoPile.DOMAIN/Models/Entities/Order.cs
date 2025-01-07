@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoPile.DOMAIN.Enum;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,13 +19,13 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string UserId { get; set; }
         public string OrderNumber { get; set; }
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; }
+        public OrderStatus Status { get; set; }
         public decimal SubTotal { get; set; }
         public decimal DeliveryFee { get; set; }
         public decimal TotalAmount { get; set; }
-        public string PaymentStatus { get; set; }
+        public PaymentStatus PaymentStatus { get; set; }
         public string PaymentMethod { get; set; }
-        public string StripeSessionId { get; set; }
+        public string? StripeSessionId { get; set; }
         public string ShippingAddress_Line1 { get; set; }
         public string ShippingAddress_Line2 { get; set; }
         public string ShippingAddress_City { get; set; }
