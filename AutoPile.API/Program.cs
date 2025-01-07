@@ -88,6 +88,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IReviewService, AutoPile.SERVICE.Services.ReviewService>();
 builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IProductService, AutoPile.SERVICE.Services.ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();

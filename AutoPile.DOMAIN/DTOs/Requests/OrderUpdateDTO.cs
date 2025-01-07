@@ -1,4 +1,5 @@
 ﻿using AutoPile.DOMAIN.DTOs.Responses;
+using AutoPile.DOMAIN.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +10,14 @@ namespace AutoPile.DOMAIN.DTOs.Requests
 {
     public class OrderUpdateDTO
     {
-        public string Status { get; set; }
-        public string PaymentMethod { get; set; }
-        public string ShippingAddress_Line1 { get; set; }
-        public string ShippingAddress_Line2 { get; set; }
-        public string ShippingAddress_City { get; set; }
-        public string ShippingAddress_Country { get; set; }
-        public string ShippingAddress_State { get; set; }
-        public string ShippingAddress_PostalCode { get; set; }
-        public ICollection<OrderItemResponseDTO> OrderItems { get; set; }
+        public OrderStatus? Status { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? ShippingAddress_Line1 { get; set; }
+        public string? ShippingAddress_Line2 { get; set; }
+        public string? ShippingAddress_City { get; set; }
+        public string? ShippingAddress_Country { get; set; }
+        public string? ShippingAddress_State { get; set; }
+        public string? ShippingAddress_PostalCode { get; set; }
+        public ICollection<OrderItemCreateDTO>? OrderItems { get; set; }
     }
 }

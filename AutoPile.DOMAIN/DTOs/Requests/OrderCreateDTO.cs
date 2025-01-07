@@ -10,7 +10,6 @@ namespace AutoPile.DOMAIN.DTOs.Requests
 {
     public class OrderCreateDTO
     {
-        public string UserId { get; set; }
         public string PaymentMethod { get; set; }
         public string ShippingAddress_Line1 { get; set; }
         public string ShippingAddress_Line2 { get; set; }
@@ -18,6 +17,8 @@ namespace AutoPile.DOMAIN.DTOs.Requests
         public string ShippingAddress_Country { get; set; }
         public string ShippingAddress_State { get; set; }
         public string ShippingAddress_PostalCode { get; set; }
-        public ICollection<OrderItemResponseDTO> OrderItems { get; set; }
+
+        public decimal DeliveryFee { get; set; }
+        public ICollection<OrderItemCreateDTO> OrderItems { get; set; }
     }
 }
