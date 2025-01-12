@@ -7,11 +7,13 @@ using AutoPile.DOMAIN.Models;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
 using AutoPile.SERVICE.Utilities;
+using Azure.Storage.Queues;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -90,6 +92,16 @@ builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IProductService, AutoPile.SERVICE.Services.ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+// Add this to the service configuration section in Program.cs
+// Register both QueueClients
+// Register QueueClient for Email Queue
+builder.Services.AddScoped<IEmailQueueService, EmailQueueService>();
+builder.Services.AddScoped<IInventoryQueueService, InventoryQueueService>();
+
+// Register background services
+builder.Services.AddHostedService<EmailProcessingService>();
+builder.Services.AddHostedService<InventoryProcessingService>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();

@@ -5,19 +5,23 @@ using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Enum;
 using AutoPile.DOMAIN.Models.Entities;
+using AutoPile.SERVICE.Services;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
 
 public class OrderService : IOrderService
 {
     private readonly AutoPileManagementDbContext _autoPileManagementDbContext;
     private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
     private readonly IMapper _mapper;
+    private readonly IInventoryQueueService _inventoryQueueService;
 
-    public OrderService(AutoPileManagementDbContext autoPileManagementDbContext, AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper)
+    public OrderService(AutoPileManagementDbContext autoPileManagementDbContext, AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper, IInventoryQueueService inventoryQueueService)
     {
         _autoPileManagementDbContext = autoPileManagementDbContext;
         _autoPileMongoDbContext = autoPileMongoDbContext;
         _mapper = mapper;
+        _inventoryQueueService = inventoryQueueService;
     }
 
     public async Task<OrderResponseDTO> CreateOrderAsync(OrderCreateDTO orderCreateDTO, string applicationUserId)
@@ -28,33 +32,46 @@ public class OrderService : IOrderService
             var user = await _autoPileManagementDbContext.Users.FindAsync(applicationUserId)
                 ?? throw new NotFoundException($"User with ID {applicationUserId} not found");
 
+            foreach (var itemDTO in orderCreateDTO.OrderItems)
+            {
+                if (!ObjectId.TryParse(itemDTO.ProductId, out ObjectId productObjectId))
+                {
+                    throw new BadRequestException("Invalid product ID format");
+                }
+                var product = await _autoPileMongoDbContext.Products.FindAsync(productObjectId)
+                    ?? throw new NotFoundException($"Product with Id {itemDTO.ProductId} not found");
+                if (product.StockQuantity < itemDTO.Quantity)
+                {
+                    throw new BadRequestException($"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {itemDTO.Quantity}");
+                }
+            }
+
             var order = _mapper.Map<Order>(orderCreateDTO);
+
             order.UserId = applicationUserId;
             order.OrderNumber = OrderNumberGenerator.GenerateSequentialOrderNumber();
             order.OrderDate = DateTime.UtcNow;
             order.Status = OrderStatus.Pending;
             order.PaymentStatus = PaymentStatus.Pending;
-            order.SubTotal = orderCreateDTO.OrderItems.Sum(item => item.ProductPrice * item.Quantity);
             order.StripeSessionId = null;
+
+            order.SubTotal = orderCreateDTO.OrderItems.Sum(item => item.ProductPrice * item.Quantity);
             order.TotalAmount = order.SubTotal + order.DeliveryFee;
+
+            order.OrderItems = orderCreateDTO.OrderItems.Select(itemDTO => new OrderItem
+            {
+                ProductId = itemDTO.ProductId,
+                ProductName = itemDTO.ProductName,
+                ProductPrice = itemDTO.ProductPrice,
+                Quantity = itemDTO.Quantity,
+                TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity
+            }).ToList();
+
             await _autoPileManagementDbContext.Orders.AddAsync(order);
             await _autoPileManagementDbContext.SaveChangesAsync();
-            foreach (var itemDTO in orderCreateDTO.OrderItems)
-            {
-                var orderItem = new OrderItem
-                {
-                    OrderId = order.Id,
-                    ProductId = itemDTO.ProductId,
-                    ProductName = itemDTO.ProductName,
-                    ProductPrice = itemDTO.ProductPrice,
-                    Quantity = itemDTO.Quantity,
-                    TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity
-                };
-                await _autoPileManagementDbContext.OrderItems.AddAsync(orderItem);
-            }
-
-            await _autoPileManagementDbContext.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            await _inventoryQueueService.QueueOrderItemMessage(order.OrderItems);
 
             return _mapper.Map<OrderResponseDTO>(order);
         }
@@ -132,19 +149,16 @@ public class OrderService : IOrderService
                 .FirstOrDefaultAsync(o => o.Id == orderId)
                 ?? throw new NotFoundException($"Order with ID {orderId} not found");
 
-            // Check authorization
             if (order.UserId != userId)
             {
                 throw new ForbiddenException("You are not authorized to update this order");
             }
 
-            // Don't allow updates if order is completed
             if (order.Status == OrderStatus.Success)
             {
                 throw new BadRequestException("Cannot update a completed order");
             }
 
-            // Update order properties
             if (orderUpdateDTO.Status.HasValue)
                 order.Status = orderUpdateDTO.Status.Value;
 
@@ -169,23 +183,19 @@ public class OrderService : IOrderService
             if (!string.IsNullOrWhiteSpace(orderUpdateDTO.ShippingAddress_PostalCode))
                 order.ShippingAddress_PostalCode = orderUpdateDTO.ShippingAddress_PostalCode;
 
-            // Update order items if provided
             if (orderUpdateDTO.OrderItems != null && orderUpdateDTO.OrderItems.Any())
             {
                 foreach (var itemDTO in orderUpdateDTO.OrderItems)
                 {
-                    // Find or add order item
                     var existingItem = order.OrderItems.FirstOrDefault(item => item.ProductId == itemDTO.ProductId);
 
                     if (existingItem != null)
                     {
-                        // Update existing item
                         existingItem.Quantity = itemDTO.Quantity;
                         existingItem.TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity;
                     }
                     else
                     {
-                        // Add new item
                         var newOrderItem = new OrderItem
                         {
                             OrderId = order.Id,
@@ -199,14 +209,12 @@ public class OrderService : IOrderService
                     }
                 }
 
-                // Remove items with zero quantity
                 foreach (var item in order.OrderItems.Where(item => item.Quantity <= 0).ToList())
                 {
                     order.OrderItems.Remove(item);
                 }
             }
 
-            // Recalculate totals
             order.SubTotal = order.OrderItems.Sum(item => item.TotalPrice);
             order.TotalAmount = order.SubTotal + order.DeliveryFee;
 
