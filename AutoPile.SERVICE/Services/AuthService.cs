@@ -3,6 +3,7 @@ using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
+using AutoPile.DOMAIN.Models.MessageQueue;
 using AutoPile.SERVICE.Utilities;
 using DnsClient.Internal;
 using Microsoft.AspNetCore.Identity;
@@ -26,14 +27,16 @@ namespace AutoPile.SERVICE.Services
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IResend _resend;
         private readonly IConfiguration _configuration;
+        private readonly IEmailQueueService _emailQueueService;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
+        public AuthService(UserManager<ApplicationUser> userManager, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
         {
             _userManager = userManager;
             _mapper = mapper;
             _jwtTokenGenerator = jwtTokenGenerator;
             _resend = resend;
             _configuration = configuration;
+            _emailQueueService = emailQueueService;
         }
 
         public async Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO)
@@ -202,17 +205,32 @@ namespace AutoPile.SERVICE.Services
             await _userManager.UpdateAsync(user);
 
             var emailConfirmationUrl = $"{Environment.GetEnvironmentVariable("DOMAIN") ?? _configuration["Domain"]}/Auth/VerifyEmailConfirmationLink?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
-            var message = new EmailMessage();
-            message.From = "Emailconfirm@autopile.store";
-            message.To.Add(email);
-            message.Subject = "Email Confirmation Link";
-            message.HtmlBody = $@"
-                <p>Hello,</p>
-                <p>Please click the link below to verify your email:</p>
-                <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>
-                <p>If you did not sign up, please ignore this email.</p>"; ;
+            //var message = new EmailMessage();
+            //message.From = "Emailconfirm@autopile.store";
+            //message.To.Add(email);
+            //message.Subject = "Email Confirmation Link";
+            //message.HtmlBody = $@"
+            //    <p>Hello,</p>
+            //    <p>Please click the link below to verify your email:</p>
+            //    <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>
+            //    <p>If you did not sign up, please ignore this email.</p>"; ;
 
-            await _resend.EmailSendAsync(message);
+            //await _resend.EmailSendAsync(message);
+            var emailMessage = new DOMAIN.Models.MessageQueue.EmailMessage
+            {
+                To = email,
+                Subject = "Email Confirmation Link",
+                MessageType = "EmailConfirmation",
+                Body = $@"<p>Hello,</p><p>Please click the link below to verify your email:</p>
+                     <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>",
+                AdditionalData = new Dictionary<string, string>
+                {
+                    ["UserId"] = userId,
+                    ["Token"] = token
+                }
+            };
+
+            await _emailQueueService.QueueEmailMessage(emailMessage);
             return token.ToString();
         }
 
@@ -262,31 +280,43 @@ namespace AutoPile.SERVICE.Services
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task<string> SendResetPasswordTokenAsync(string email)
+        public async Task<string> SendResetPasswordTokenAsync(string email, string userId)
         {
             if (string.IsNullOrEmpty(email))
             {
                 throw new BadRequestException("email is required");
             }
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
-            //if (user.Id != userId)
-            //{
-            //    throw new ForbiddenException();
-            //}
+            if (user.Id != userId)
+            {
+                throw new ForbiddenException();
+            }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            var emailConfirmationUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
-            var message = new EmailMessage();
-            message.From = "PasswordReset@autopile.store";
-            message.To.Add(email);
-            message.Subject = "Password Reset Link";
-            message.HtmlBody = $@"
-                <p>Hello,</p>
-                <p>Please click the link below to Reset your password:</p>
-                <p><a href='{emailConfirmationUrl}'>Password Reset link</a></p>
-                <p>If you did not request password reset, please ignore this email.</p>"; ;
+            var emailResetUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
+            //var message = new Resend.EmailMessage();
+            //message.From = "PasswordReset@autopile.store";
+            //message.To.Add(email);
+            //message.Subject = "Password Reset Link";
+            //message.HtmlBody = $@"
+            //    <p>Hello,</p>
+            //    <p>Please click the link below to Reset your password:</p>
+            //    <p><a href='{emailConfirmationUrl}'>Password Reset link</a></p>
+            //    <p>If you did not request password reset, please ignore this email.</p>"; ;
 
-            await _resend.EmailSendAsync(message);
+            //await _resend.EmailSendAsync(message);
+
+            var emailMessage = new DOMAIN.Models.MessageQueue.EmailMessage
+            {
+                To = email,
+                Subject = "Password Reset Link",
+                MessageType = "PasswordReset",
+                Body = $@"<p>Hello,</p><p>Please click the link below to Reset your password:</p>
+                     <p><a href='{emailResetUrl}'>Password Reset link</a></p>
+                     <p>If you did not request password reset, please ignore this email.</p>"
+            };
+
+            await _emailQueueService.QueueEmailMessage(emailMessage);
             return token.ToString();
         }
 
