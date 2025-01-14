@@ -35,40 +35,65 @@ public class OrderService : IOrderService
             var user = await _autoPileManagementDbContext.Users.FindAsync(applicationUserId)
                 ?? throw new NotFoundException($"User with ID {applicationUserId} not found");
 
+            var orderItems = new List<OrderItem>();
+            decimal subtotal = 0;
+
             foreach (var itemDTO in orderCreateDTO.OrderItems)
             {
                 if (!ObjectId.TryParse(itemDTO.ProductId, out ObjectId productObjectId))
                 {
                     throw new BadRequestException("Invalid product ID format");
                 }
+
                 var product = await _autoPileMongoDbContext.Products.FindAsync(productObjectId)
                     ?? throw new NotFoundException($"Product with Id {itemDTO.ProductId} not found");
+
                 if (product.StockQuantity < itemDTO.Quantity)
                 {
                     throw new BadRequestException($"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {itemDTO.Quantity}");
                 }
+
+                decimal productPrice = product.Price;
+                if (product.ComparePrice.HasValue && product.ComparePrice.Value > 0)
+                {
+                    productPrice = product.ComparePrice.Value;
+                }
+
+                var itemTotal = productPrice * itemDTO.Quantity;
+
+                var orderItem = new OrderItem
+                {
+                    ProductId = itemDTO.ProductId,
+                    ProductName = product.Name,
+                    ProductPrice = productPrice,
+                    Quantity = itemDTO.Quantity,
+                    TotalPrice = itemTotal
+                };
+
+                orderItems.Add(orderItem);
+                subtotal += itemTotal;
             }
 
-            var order = _mapper.Map<Order>(orderCreateDTO);
-
-            order.UserId = applicationUserId;
-            order.OrderNumber = OrderNumberGenerator.GenerateSequentialOrderNumber();
-            order.OrderDate = DateTime.UtcNow;
-            order.Status = OrderStatus.Pending;
-            order.PaymentStatus = PaymentStatus.Pending;
-            order.StripeSessionId = null;
-
-            order.SubTotal = orderCreateDTO.OrderItems.Sum(item => item.ProductPrice * item.Quantity);
-            order.TotalAmount = order.SubTotal + order.DeliveryFee;
-
-            order.OrderItems = orderCreateDTO.OrderItems.Select(itemDTO => new OrderItem
+            var order = new Order
             {
-                ProductId = itemDTO.ProductId,
-                ProductName = itemDTO.ProductName,
-                ProductPrice = itemDTO.ProductPrice,
-                Quantity = itemDTO.Quantity,
-                TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity
-            }).ToList();
+                UserId = applicationUserId,
+                OrderNumber = OrderNumberGenerator.GenerateSequentialOrderNumber(),
+                OrderDate = DateTime.UtcNow,
+                Status = OrderStatus.Pending,
+                PaymentStatus = PaymentStatus.Pending,
+                PaymentMethod = orderCreateDTO.PaymentMethod,
+                ShippingAddress_Line1 = orderCreateDTO.ShippingAddress_Line1,
+                ShippingAddress_Line2 = orderCreateDTO.ShippingAddress_Line2,
+                ShippingAddress_City = orderCreateDTO.ShippingAddress_City,
+                ShippingAddress_Country = orderCreateDTO.ShippingAddress_Country,
+                ShippingAddress_State = orderCreateDTO.ShippingAddress_State,
+                ShippingAddress_PostalCode = orderCreateDTO.ShippingAddress_PostalCode,
+                DeliveryFee = orderCreateDTO.DeliveryFee,
+                SubTotal = subtotal,
+                TotalAmount = subtotal + orderCreateDTO.DeliveryFee,
+                StripeSessionId = null,
+                OrderItems = orderItems
+            };
 
             await _autoPileManagementDbContext.Orders.AddAsync(order);
             await _autoPileManagementDbContext.SaveChangesAsync();
@@ -196,45 +221,82 @@ public class OrderService : IOrderService
 
             if (orderUpdateDTO.OrderItems != null && orderUpdateDTO.OrderItems.Any())
             {
+                decimal subtotal = 0;
+
                 foreach (var itemDTO in orderUpdateDTO.OrderItems)
                 {
-                    var existingItem = order.OrderItems.FirstOrDefault(item => item.ProductId == itemDTO.ProductId);
+                    if (!ObjectId.TryParse(itemDTO.ProductId, out ObjectId productObjectId))
+                    {
+                        throw new BadRequestException($"Invalid product ID format: {itemDTO.ProductId}");
+                    }
 
+                    var product = await _autoPileMongoDbContext.Products.FindAsync(productObjectId)
+                        ?? throw new NotFoundException($"Product with Id {itemDTO.ProductId} not found");
+
+                    decimal productPrice = product.Price;
+                    if (product.ComparePrice.HasValue && product.ComparePrice.Value > 0)
+                    {
+                        productPrice = product.ComparePrice.Value;
+                    }
+
+                    var existingItem = order.OrderItems.FirstOrDefault(item => item.ProductId == itemDTO.ProductId);
                     if (existingItem != null)
                     {
+                        if (itemDTO.Quantity > product.StockQuantity)
+                        {
+                            throw new BadRequestException($"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {itemDTO.Quantity}");
+                        }
+
                         existingItem.Quantity = itemDTO.Quantity;
-                        existingItem.TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity;
+                        existingItem.ProductName = product.Name;
+                        existingItem.ProductPrice = productPrice;
+                        existingItem.TotalPrice = productPrice * itemDTO.Quantity;
+
+                        subtotal += existingItem.TotalPrice;
                     }
                     else
                     {
+                        if (itemDTO.Quantity > product.StockQuantity)
+                        {
+                            throw new BadRequestException($"Insufficient stock for product {product.Name}. Available: {product.StockQuantity}, Requested: {itemDTO.Quantity}");
+                        }
+
                         var newOrderItem = new OrderItem
                         {
                             OrderId = order.Id,
                             ProductId = itemDTO.ProductId,
-                            ProductName = itemDTO.ProductName,
-                            ProductPrice = itemDTO.ProductPrice,
+                            ProductName = product.Name,
+                            ProductPrice = productPrice,
                             Quantity = itemDTO.Quantity,
-                            TotalPrice = itemDTO.ProductPrice * itemDTO.Quantity
+                            TotalPrice = productPrice * itemDTO.Quantity
                         };
                         order.OrderItems.Add(newOrderItem);
+
+                        subtotal += newOrderItem.TotalPrice;
                     }
                 }
 
-                foreach (var item in order.OrderItems.Where(item => item.Quantity <= 0).ToList())
+                var itemsToRemove = order.OrderItems.Where(item => item.Quantity <= 0).ToList();
+                foreach (var item in itemsToRemove)
                 {
                     order.OrderItems.Remove(item);
                 }
-            }
 
-            order.SubTotal = order.OrderItems.Sum(item => item.TotalPrice);
-            order.TotalAmount = order.SubTotal + order.DeliveryFee;
+                var unchangedItems = order.OrderItems.Where(item => !orderUpdateDTO.OrderItems.Any(dto => dto.ProductId == item.ProductId));
+                subtotal += unchangedItems.Sum(item => item.TotalPrice);
+
+                order.SubTotal = subtotal;
+                order.TotalAmount = subtotal + order.DeliveryFee;
+            }
 
             await _autoPileManagementDbContext.SaveChangesAsync();
 
-            await _orderCache.UpdateOrderAsync(_mapper.Map<OrderResponseDTO>(order));
+            var orderResponse = _mapper.Map<OrderResponseDTO>(order);
+            await _orderCache.UpdateOrderAsync(orderResponse);
+
             await transaction.CommitAsync();
 
-            return _mapper.Map<OrderResponseDTO>(order);
+            return orderResponse;
         }
         catch
         {

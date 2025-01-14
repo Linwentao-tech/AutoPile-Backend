@@ -16,6 +16,5 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public decimal ProductPrice { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
-        public ProductResponseDTO Product { get; set; }
     }
 }
