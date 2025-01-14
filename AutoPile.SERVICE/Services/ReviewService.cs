@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoPile.DATA.Cache;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
@@ -16,13 +17,15 @@ namespace AutoPile.SERVICE.Services
         private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
         private readonly AutoPileManagementDbContext _autoPileManagementDbContext;
         private readonly IBlobService _blobService;
+        private readonly IReviewsCache _reviewsCache;
 
-        public ReviewService(IMapper mapper, IBlobService blobService, AutoPileMongoDbContext autoPileMongoDbContext, AutoPileManagementDbContext autoPileManagementDbContext)
+        public ReviewService(IMapper mapper, IBlobService blobService, AutoPileMongoDbContext autoPileMongoDbContext, AutoPileManagementDbContext autoPileManagementDbContext, IReviewsCache reviewsCache)
         {
             _mapper = mapper;
             _autoPileMongoDbContext = autoPileMongoDbContext;
             _autoPileManagementDbContext = autoPileManagementDbContext;
             _blobService = blobService;
+            _reviewsCache = reviewsCache;
         }
 
         public async Task<ReviewResponseDTO> CreateReviewAsync(ReviewCreateDTO reviewCreateDTO, string applicationUserId)
@@ -71,6 +74,7 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("Invalid product ID format");
             }
+
             var review = await _autoPileMongoDbContext.Reviews.FindAsync(reviewObjectId) ?? throw new NotFoundException($"Review with ID {ReviewId} not found");
             return _mapper.Map<ReviewResponseDTO>(review);
         }
@@ -82,7 +86,17 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException("Invalid product ID format");
             }
             _ = await _autoPileMongoDbContext.Products.FindAsync(productObjectId) ?? throw new NotFoundException($"Product with ID {ProductId} not found");
+
+            var reviewCache = await _reviewsCache.GetReviewAsync(ProductId);
+            if (reviewCache != null)
+            {
+                return reviewCache;
+            }
+
             var reviews = await _autoPileMongoDbContext.Reviews.Where(r => r.ProductId == productObjectId).ToListAsync();
+
+            await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+
             return _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews);
         }
 
@@ -128,6 +142,8 @@ namespace AutoPile.SERVICE.Services
             review.UpdatedAt = DateTime.UtcNow;
             _autoPileMongoDbContext.Update(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
+
+            await _reviewsCache.UpdateReviewAsync(_mapper.Map<ReviewResponseDTO>(review));
             return _mapper.Map<ReviewResponseDTO>(review);
         }
 
@@ -148,6 +164,8 @@ namespace AutoPile.SERVICE.Services
             if (review.ImageUrl != null) { await _blobService.DeleteImageAsync(review.ImageUrl); }
             _autoPileMongoDbContext.Remove(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
+
+            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString());
         }
     }
 }

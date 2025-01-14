@@ -68,10 +68,26 @@ namespace AutoPile.API.Controllers
         /// <response code="200">Returns the list of orders</response>
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user is not an admin</response>
-        [HttpGet("GetUserOrders/{userId}", Name = "GetUserOrders")]
+        [HttpGet("GetUserOrdersAdmin/{userId}", Name = "GetUserOrdersAdmin")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUserOrders(string userId)
+        public async Task<IActionResult> GetUserOrdersAdmin(string userId)
         {
+            var orderResponse = await _orderService.GetUserOrdersAsync(userId);
+            return ApiResponse<IEnumerable<OrderResponseDTO>>.OkResult(orderResponse);
+        }
+
+        /// <summary>
+        /// Retrieves all orders for a specific user
+        /// </summary>
+        /// <returns>A collection of orders for the specified user</returns>
+        /// <response code="200">Returns the list of orders</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user is not an admin</response>
+        [HttpGet("GetUserOrders", Name = "GetUserOrders")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetUserOrders()
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
             var orderResponse = await _orderService.GetUserOrdersAsync(userId);
             return ApiResponse<IEnumerable<OrderResponseDTO>>.OkResult(orderResponse);
         }

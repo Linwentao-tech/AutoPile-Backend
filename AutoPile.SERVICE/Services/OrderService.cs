@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoPile.DATA.Cache;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
@@ -15,13 +16,15 @@ public class OrderService : IOrderService
     private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
     private readonly IMapper _mapper;
     private readonly IInventoryQueueService _inventoryQueueService;
+    private readonly IOrderCache _orderCache;
 
-    public OrderService(AutoPileManagementDbContext autoPileManagementDbContext, AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper, IInventoryQueueService inventoryQueueService)
+    public OrderService(AutoPileManagementDbContext autoPileManagementDbContext, IOrderCache orderCache, AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper, IInventoryQueueService inventoryQueueService)
     {
         _autoPileManagementDbContext = autoPileManagementDbContext;
         _autoPileMongoDbContext = autoPileMongoDbContext;
         _mapper = mapper;
         _inventoryQueueService = inventoryQueueService;
+        _orderCache = orderCache;
     }
 
     public async Task<OrderResponseDTO> CreateOrderAsync(OrderCreateDTO orderCreateDTO, string applicationUserId)
@@ -131,10 +134,18 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<OrderResponseDTO>> GetUserOrdersAsync(string applicationUserId)
     {
+        var ordercache = await _orderCache.GetOrderAsync(applicationUserId);
+        if (ordercache != null)
+        {
+            return ordercache;
+        }
+
         var orders = await _autoPileManagementDbContext.Orders.Include(o => o.OrderItems)
             .Where(o => o.UserId == applicationUserId)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
+
+        await _orderCache.SetOrderAsync(applicationUserId, _mapper.Map<IEnumerable<OrderResponseDTO>>(orders));
 
         return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
     }
@@ -219,6 +230,8 @@ public class OrderService : IOrderService
             order.TotalAmount = order.SubTotal + order.DeliveryFee;
 
             await _autoPileManagementDbContext.SaveChangesAsync();
+
+            await _orderCache.UpdateOrderAsync(_mapper.Map<OrderResponseDTO>(order));
             await transaction.CommitAsync();
 
             return _mapper.Map<OrderResponseDTO>(order);
