@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoPile.DATA.Cache;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
@@ -28,8 +29,9 @@ namespace AutoPile.SERVICE.Services
         private readonly IResend _resend;
         private readonly IConfiguration _configuration;
         private readonly IEmailQueueService _emailQueueService;
+        private readonly IUserInfoCache _userInfoCache;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
+        public AuthService(UserManager<ApplicationUser> userManager, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IUserInfoCache userInfoCache, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -37,6 +39,7 @@ namespace AutoPile.SERVICE.Services
             _resend = resend;
             _configuration = configuration;
             _emailQueueService = emailQueueService;
+            _userInfoCache = userInfoCache;
         }
 
         public async Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO)
@@ -160,8 +163,12 @@ namespace AutoPile.SERVICE.Services
                 UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
                 userResponseDTO.Token = token;
                 userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
+                var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
+                userResponseInfoDTO.Roles = userResponseDTO.Roles;
+                await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
                 return userResponseDTO;
             }
+
             throw new NotFoundException("Email does not exist or incorrect password");
         }
 
@@ -171,6 +178,13 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("user id is not found");
             }
+
+            var userCached = await _userInfoCache.GetUserAsync(userId);
+            if (userCached != null)
+            {
+                return userCached;
+            }
+
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException($"User with ID {userId} not found");
             UserInfoResponseDTO userInfoResponseDTO = _mapper.Map<UserInfoResponseDTO>(user);
             userInfoResponseDTO.Roles = await _userManager.GetRolesAsync(user);
@@ -277,6 +291,8 @@ namespace AutoPile.SERVICE.Services
 
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException("User not found");
             _mapper.Map(userUpdateInfoDTO, user);
+
+            await _userInfoCache.SetUserAsync(userId, _mapper.Map<UserInfoResponseDTO>(user));
             await _userManager.UpdateAsync(user);
         }
 

@@ -12,5 +12,7 @@ namespace AutoPile.SERVICE.Services
         Task<ShoppingCartItemResponseDTO> GetShoppingCartItemById(int shoppingCartItemId, string applicationUserId);
 
         Task UpdateShoppingCartItemAsync(UpdateShoppingCartItemDto updateShoppingCartItemDto, int shoppingCartItemId, string? applicationUserId);
+
+        Task DeleteAllShoppingCartItemsAsync(string applicationUserId);
     }
 }

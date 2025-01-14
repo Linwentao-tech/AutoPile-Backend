@@ -105,5 +105,27 @@ namespace AutoPile.API.Controllers
             _logger.LogInformation("Shopping Cart Item updated successfully with Id {ShoppingCartItemId}", id);
             return ApiResponse.OkResult("Resource updated successfully");
         }
+
+        /// <summary>
+        /// Deletes all shopping cart items for the authenticated user
+        /// </summary>
+        /// <remarks>
+        /// This endpoint removes all items from the user's shopping cart.
+        /// The user must be authenticated and have the "User" role to access this endpoint.
+        /// </remarks>
+        /// <response code="204">All shopping cart items were successfully deleted</response>
+        /// <response code="401">User is not authenticated</response>
+        /// <response code="403">User does not have the required role</response>
+        /// <response code="404">User not found</response>
+        /// <response code="500">Internal server error occurred</response>
+        [HttpDelete]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> DeleteAllShoppingCartItems()
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            await _shoppingCartItemService.DeleteAllShoppingCartItemsAsync(userId);
+            _logger.LogInformation("Whole shopping Cart Item deleted successfully with User Id {userId}", userId);
+            return NoContent();
+        }
     }
 }

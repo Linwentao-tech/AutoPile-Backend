@@ -1,5 +1,7 @@
 using AutoPile.API;
 using AutoPile.API.Validators;
+using AutoPile.DATA.Cache;
+using AutoPile.DATA.Cache.CacheRepository;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Middlewares;
 using AutoPile.DOMAIN.Interface;
@@ -91,7 +93,13 @@ builder.Services.AddScoped<IReviewService, AutoPile.SERVICE.Services.ReviewServi
 builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IProductService, AutoPile.SERVICE.Services.ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IRedisShoppingCartCache, RedisShoppingCartCache>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+builder.Services.AddScoped(typeof(IRedisCache<>), typeof(RedisCache<>));
+builder.Services.AddScoped<IProductCache, ProductCache>();
+builder.Services.AddScoped<IReviewsCache, ReviewsCache>();
+builder.Services.AddScoped<IUserInfoCache, UserInfoCache>();
+builder.Services.AddScoped<IOrderCache, OrderCache>();
 // Add this to the service configuration section in Program.cs
 // Register both QueueClients
 // Register QueueClient for Email Queue
@@ -107,6 +115,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<UserSignupDTOValidator>();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = Environment.GetEnvironmentVariable("REDIS");
+});
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

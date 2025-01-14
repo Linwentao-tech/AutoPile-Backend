@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoPile.DATA.Cache;
 using AutoPile.DATA.Data;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
@@ -17,11 +18,13 @@ namespace AutoPile.SERVICE.Services
     {
         private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
         private readonly IMapper _mapper;
+        private readonly IProductCache _productCache;
 
-        public ProductService(AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper)
+        public ProductService(AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper, IProductCache productCache)
         {
             _autoPileMongoDbContext = autoPileMongoDbContext;
             _mapper = mapper;
+            _productCache = productCache;
         }
 
         public async Task<ProductResponseDTO> CreateProductAsync(ProductCreateDTO productCreateDTO)
@@ -46,8 +49,17 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("Invalid product ID format");
             }
+
+            var cachedProduct = await _productCache.GetProductAsync(id);
+            if (cachedProduct != null)
+            {
+                return cachedProduct;
+            }
+
             var product = await _autoPileMongoDbContext.Products.FindAsync(productObjectId) ?? throw new NotFoundException($"Product with Id {id} not found");
-            return _mapper.Map<ProductResponseDTO>(product);
+            var productResponseDTO = _mapper.Map<ProductResponseDTO>(product);
+            await _productCache.SetProductAsync(id, productResponseDTO);
+            return productResponseDTO;
         }
 
         public async Task DeleteProductByIdAsync(string id)
@@ -59,6 +71,8 @@ namespace AutoPile.SERVICE.Services
             var product = await _autoPileMongoDbContext.Products.FindAsync(productObjectId) ?? throw new NotFoundException($"Product with Id {id} not found");
             _autoPileMongoDbContext.Remove(product);
             await _autoPileMongoDbContext.SaveChangesAsync();
+
+            await _productCache.DeleteProductAsync(id);
         }
 
         public async Task<ProductResponseDTO> UpdateProductByIdAsync(ProductUpdateDTO productUpdateDTO, string id)
@@ -98,7 +112,7 @@ namespace AutoPile.SERVICE.Services
 
             _autoPileMongoDbContext.Update(product);
             await _autoPileMongoDbContext.SaveChangesAsync();
-
+            await _productCache.SetProductAsync(id, _mapper.Map<ProductResponseDTO>(product));
             return _mapper.Map<ProductResponseDTO>(product);
         }
     }
