@@ -296,17 +296,13 @@ namespace AutoPile.SERVICE.Services
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task<string> SendResetPasswordTokenAsync(string email, string userId)
+        public async Task<string> SendResetPasswordTokenAsync(string email)
         {
             if (string.IsNullOrEmpty(email))
             {
                 throw new BadRequestException("email is required");
             }
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
-            if (user.Id != userId)
-            {
-                throw new ForbiddenException();
-            }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
             var emailResetUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
