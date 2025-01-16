@@ -53,7 +53,7 @@ namespace AutoPile.API.Validators
             RuleFor(u => u.PhoneNumber)
                 .NotEmpty().WithMessage("Phone number is required")
                 .MaximumLength(20).WithMessage("Phone number must not exceed 20 characters")
-                .Matches("^\\+?[1-9][0-9]{7,14}$").WithMessage("Invalid phone number format. Use international format (e.g., +1234567890)");
+                .Matches("^[0-9]{8,20}$").WithMessage("Invalid phone number format. Use a standard numeric format (e.g., 0123456789)");
         }
     }
 
