@@ -44,7 +44,7 @@ namespace AutoPile.API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddHours(3)
             };
             Response.Cookies.Append("AuthToken", token, cookieOptions);
@@ -66,7 +66,7 @@ namespace AutoPile.API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddHours(3)
             };
             Response.Cookies.Append("AuthToken", token, cookieOptions);
@@ -88,7 +88,7 @@ namespace AutoPile.API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddHours(3)
             };
             Response.Cookies.Append("AuthToken", token, cookieOptions);
