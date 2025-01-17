@@ -184,7 +184,7 @@ builder.Services.AddCors(options =>
             builder.WithOrigins("http://localhost:3000")
             .WithOrigins("https://www.autopile.store/")
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod().AllowCredentials();
         });
 });
 StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("StripeKey");
