@@ -181,7 +181,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost3000",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000", "https://www.autopile.store")
+            builder.WithOrigins("http://localhost:3000", "https://www.autopile.store", "https://autopile-gafnbva6egabe5ap.australiaeast-01.azurewebsites.net")
                    .AllowAnyHeader()
                    .AllowAnyMethod().AllowCredentials();
         });
