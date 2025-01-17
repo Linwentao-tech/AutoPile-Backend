@@ -6,11 +6,11 @@ namespace AutoPile.SERVICE.Services
 {
     public interface IAuthService
     {
-        Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO);
+        Task<(UserResponseDTO, string)> SignupAdminAsync(UserSignupDTO userSignupDTO);
 
-        Task<UserResponseDTO> SignupUserAsync([FromBody] UserSignupDTO userSignupDTO);
+        Task<(UserResponseDTO, string)> SignupUserAsync([FromBody] UserSignupDTO userSignupDTO);
 
-        Task<UserResponseDTO> SigninAsync(UserSigninDTO userSigninDTO);
+        Task<(UserResponseDTO, string)> SigninAsync(UserSigninDTO userSigninDTO);
 
         Task<UserInfoResponseDTO> GetUserInfoAsync(string userId);
 

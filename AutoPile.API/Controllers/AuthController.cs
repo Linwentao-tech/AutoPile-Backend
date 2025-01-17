@@ -39,7 +39,15 @@ namespace AutoPile.API.Controllers
         [HttpPost("SignupUser", Name = "SignupUser")]
         public async Task<IActionResult> SignupUser([FromBody] UserSignupDTO userSignupDTO)
         {
-            var userResponseDTO = await _authService.SignupUserAsync(userSignupDTO);
+            var (userResponseDTO, token) = await _authService.SignupUserAsync(userSignupDTO);
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddHours(3)
+            };
+            Response.Cookies.Append("AuthToken", token, cookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -53,7 +61,15 @@ namespace AutoPile.API.Controllers
         [HttpPost("SignupAdmin", Name = "SignupAdmin")]
         public async Task<IActionResult> SignupAdmin([FromBody] UserSignupDTO userSignupDTO)
         {
-            var userResponseDTO = await _authService.SignupAdminAsync(userSignupDTO);
+            var (userResponseDTO, token) = await _authService.SignupAdminAsync(userSignupDTO);
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddHours(3)
+            };
+            Response.Cookies.Append("AuthToken", token, cookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -67,7 +83,15 @@ namespace AutoPile.API.Controllers
         [HttpPost("Signin", Name = "Signin")]
         public async Task<IActionResult> Signin([FromBody] UserSigninDTO userSigninDTO)
         {
-            var userResponseDTO = await _authService.SigninAsync(userSigninDTO);
+            var (userResponseDTO, token) = await _authService.SigninAsync(userSigninDTO);
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddHours(3)
+            };
+            Response.Cookies.Append("AuthToken", token, cookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -177,6 +201,25 @@ namespace AutoPile.API.Controllers
         {
             await _authService.ValidatePasswordResetTokenAsync(validateTokenRequest.Email, validateTokenRequest.Token);
             return ApiResponse.OkResult("Token successfully validate");
+        }
+
+        /// <summary>
+        /// Signs out the current user by removing their authentication token
+        /// </summary>
+        /// <returns>A success message indicating the user has been logged out</returns>
+        /// <response code="200">If the user was successfully logged out</response>
+        /// <response code="401">If the user is not authenticated</response>
+        [HttpPost("Signout", Name = "Signout")]
+        [Authorize]
+        public async Task<IActionResult> Signout()
+        {
+            Response.Cookies.Delete("AuthToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            });
+            return ApiResponse.OkResult("Logged out successfully");
         }
     }
 }
