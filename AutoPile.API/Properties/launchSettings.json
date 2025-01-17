@@ -19,8 +19,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "RESEND_APITOKEN": "re_FFu4XttH_747FDbLnWmRucksFtEWpvteb",
-        "BlobStorage": "DefaultEndpointsProtocol=https;AccountName=autopile;AccountKey=Q7F1A4KLdgHVdM5JDeH1rLxrHgebRRNXytyhY1AcfT5Pj0GZyorIbqWQrHCBGUivTgF5VusExpZ3+AStO8a2dQ==;EndpointSuffix=core.windows.net",
-        "REDIS": "AutoPileDb.redis.cache.windows.net:6380,password=oa5aSxuqu0qVFpJlAxXCa1i2tZWaeomBGAzCaFFSVgM=,ssl=True,abortConnect=False"
+        "BlobStorage": "DefaultEndpointsProtocol=https;AccountName=autopile;AccountKey=Q7F1A4KLdgHVdM5JDeH1rLxrHgebRRNXytyhY1AcfT5Pj0GZyorIbqWQrHCBGUivTgF5VusExpZ3+AStO8a2dQ==;EndpointSuffix=core.windows.net"
       }
     }
   }
