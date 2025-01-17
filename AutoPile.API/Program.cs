@@ -181,8 +181,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost3000",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000")
-            .WithOrigins("https://www.autopile.store/")
+            builder.WithOrigins(
+                    "http://localhost:3000",
+                    "https://www.autopile.store"
+                )
                    .AllowAnyHeader()
                    .AllowAnyMethod().AllowCredentials();
         });
@@ -190,7 +192,7 @@ builder.Services.AddCors(options =>
 StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("StripeKey");
 
 var app = builder.Build();
-app.UseCors("AllowLocalhost3000");
+
 app.UseMiddleware<UserIdExtractMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHsts();
@@ -213,6 +215,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("AllowLocalhost3000");
 app.UseAuthentication();
 app.UseAuthorization();
 
