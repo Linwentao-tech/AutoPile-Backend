@@ -27,9 +27,7 @@ namespace AutoPile.DATA.Middlewares
         {
             try
             {
-                var authorizationHeader = httpcontext.Request.Headers["Authorization"].FirstOrDefault();
-                var token = authorizationHeader?.Split(" ").Last();
-
+                var token = httpcontext.Request.Cookies["AuthToken"];
                 if (token != null)
                 {
                     var handler = new JwtSecurityTokenHandler();
