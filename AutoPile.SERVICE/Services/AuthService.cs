@@ -42,7 +42,7 @@ namespace AutoPile.SERVICE.Services
             _userInfoCache = userInfoCache;
         }
 
-        public async Task<UserResponseDTO> SignupAdminAsync(UserSignupDTO userSignupDTO)
+        public async Task<(UserResponseDTO, string)> SignupAdminAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
@@ -95,14 +95,14 @@ namespace AutoPile.SERVICE.Services
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Token = token,
+
                 Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return responseDTO;
+            return (responseDTO, token);
         }
 
-        public async Task<UserResponseDTO> SignupUserAsync(UserSignupDTO userSignupDTO)
+        public async Task<(UserResponseDTO, string)> SignupUserAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
@@ -146,14 +146,13 @@ namespace AutoPile.SERVICE.Services
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Token = token,
                 Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return responseDTO;
+            return (responseDTO, token);
         }
 
-        public async Task<UserResponseDTO> SigninAsync(UserSigninDTO userSigninDTO)
+        public async Task<(UserResponseDTO, string)> SigninAsync(UserSigninDTO userSigninDTO)
         {
             var user = await _userManager.FindByEmailAsync(userSigninDTO.Email);
 
@@ -161,12 +160,13 @@ namespace AutoPile.SERVICE.Services
             {
                 var token = _jwtTokenGenerator.GenerateJwtToken(user);
                 UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
-                userResponseDTO.Token = token;
+
                 userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
                 var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
                 userResponseInfoDTO.Roles = userResponseDTO.Roles;
                 await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
-                return userResponseDTO;
+
+                return (userResponseDTO, token);
             }
 
             throw new NotFoundException("Email does not exist or incorrect password");
