@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Resend;
 using System;
 using System.Collections.Generic;
@@ -30,8 +31,9 @@ namespace AutoPile.SERVICE.Services
         private readonly IConfiguration _configuration;
         private readonly IEmailQueueService _emailQueueService;
         private readonly IUserInfoCache _userInfoCache;
+        private readonly ILogger<IAuthService> _logger;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IUserInfoCache userInfoCache, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
+        public AuthService(UserManager<ApplicationUser> userManager, ILogger<IAuthService> logger, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IUserInfoCache userInfoCache, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -40,6 +42,7 @@ namespace AutoPile.SERVICE.Services
             _configuration = configuration;
             _emailQueueService = emailQueueService;
             _userInfoCache = userInfoCache;
+            _logger = logger;
         }
 
         public async Task<(UserResponseDTO, string)> SignupAdminAsync(UserSignupDTO userSignupDTO)
@@ -165,7 +168,7 @@ namespace AutoPile.SERVICE.Services
                 var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
                 userResponseInfoDTO.Roles = userResponseDTO.Roles;
                 await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
-
+                _logger.LogInformation("Successfully cached user info for user {UserId}", user.Id);
                 return (userResponseDTO, token);
             }
 

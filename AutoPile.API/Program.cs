@@ -79,6 +79,15 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = Environment.GetEnvironmentVariable("AUDIENCE") ?? builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWTKEY") ?? builder.Configuration["Jwt:Key"]))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies["AuthToken"];
+            return Task.CompletedTask;
+        }
+    };
 });
 builder.Services.AddAuthorization(options =>
 {

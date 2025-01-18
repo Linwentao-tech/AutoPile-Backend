@@ -2,6 +2,7 @@
 using AutoPile.DOMAIN.Models.Entities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,19 @@ namespace AutoPile.DATA.Cache.CacheRepository
     public class RedisCache<T> : IRedisCache<T> where T : class
     {
         private readonly IDistributedCache _redis;
+        private readonly ILogger<RedisCache<T>> _logger; // Add logger
 
-        public RedisCache(IDistributedCache redis)
+        public RedisCache(IDistributedCache redis, ILogger<RedisCache<T>> logger)
         {
             _redis = redis;
+            _logger = logger;
         }
 
         public async Task<T?> GetAsync(string key)
         {
             var cachedValue = await _redis.GetStringAsync(key);
+            _logger.LogInformation("Redis GET for key {Key}: {Value}", key,
+                cachedValue ?? "null");
             if (!string.IsNullOrEmpty(cachedValue))
             {
                 await _redis.RefreshAsync(key);
@@ -48,11 +53,13 @@ namespace AutoPile.DATA.Cache.CacheRepository
             var cachedProduct = await GetAsync(key);
             if (cachedProduct != null)
             {
+                _logger.LogInformation("Redis SET for key {Key}: {Value}", key, JsonSerializer.Serialize(item));
                 await _redis.SetStringAsync(key, JsonSerializer.Serialize(item), cacheOptions);
             }
             else
             {
                 await _redis.RemoveAsync(key);
+                _logger.LogInformation("Redis SET for key {Key}: {Value}", key, JsonSerializer.Serialize(item));
                 await _redis.SetStringAsync(key, JsonSerializer.Serialize(item), cacheOptions);
             }
         }

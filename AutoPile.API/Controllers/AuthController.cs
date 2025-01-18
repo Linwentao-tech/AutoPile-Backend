@@ -213,14 +213,15 @@ namespace AutoPile.API.Controllers
         /// <response code="200">If the user was successfully logged out</response>
         /// <response code="401">If the user is not authenticated</response>
         [HttpPost("Signout", Name = "Signout")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Signout()
         {
             Response.Cookies.Delete("AuthToken", new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict
+                SameSite = SameSiteMode.None,
+                Path = "/"
             });
             return ApiResponse.OkResult("Logged out successfully");
         }
