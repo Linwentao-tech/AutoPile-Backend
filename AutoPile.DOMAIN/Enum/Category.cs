@@ -8,10 +8,9 @@ namespace AutoPile.DOMAIN.Enum
 {
     public enum Category
     {
-        Accessories = 1,
-        VehicleBodyParts = 2,
-        WheelsAndRims = 3,
-        Engine = 4
+        Accessories,
+        VehicleBodyParts,
+        WheelsAndRims,
+        Engine
     }
-
 }

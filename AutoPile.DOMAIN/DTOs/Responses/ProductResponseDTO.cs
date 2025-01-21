@@ -12,7 +12,7 @@ namespace AutoPile.DOMAIN.DTOs.Responses
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
+        public string productDescription { get; set; }
         public string ProductInfo { get; set; }
         public string SKU { get; set; }
         public decimal Price { get; set; }

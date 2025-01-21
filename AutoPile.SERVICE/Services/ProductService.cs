@@ -5,7 +5,9 @@ using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +64,17 @@ namespace AutoPile.SERVICE.Services
             return productResponseDTO;
         }
 
+        public async Task<IEnumerable<ProductResponseDTO>> GetProductsListAsync()
+        {
+            var products = await _autoPileMongoDbContext.Products.OrderBy(p => p.Name).ToListAsync();
+            if (products.Count == 0)
+            {
+                throw new NotFoundException("No products found");
+            }
+
+            return _mapper.Map<IEnumerable<ProductResponseDTO>>(products);
+        }
+
         public async Task DeleteProductByIdAsync(string id)
         {
             if (!ObjectId.TryParse(id, out ObjectId productObjectId))
@@ -88,7 +101,7 @@ namespace AutoPile.SERVICE.Services
             if (productUpdateDTO.Name != null)
                 product.Name = productUpdateDTO.Name;
             if (productUpdateDTO.Description != null)
-                product.Description = productUpdateDTO.Description;
+                product.productDescription = productUpdateDTO.Description;
             if (productUpdateDTO.ProductInfo != null)
                 product.ProductInfo = productUpdateDTO.ProductInfo;
             if (productUpdateDTO.SKU != null)
