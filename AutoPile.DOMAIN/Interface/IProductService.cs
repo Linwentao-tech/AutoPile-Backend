@@ -12,5 +12,7 @@ namespace AutoPile.SERVICE.Services
         Task DeleteProductByIdAsync(string id);
 
         Task<ProductResponseDTO> UpdateProductByIdAsync(ProductUpdateDTO productUpdateDTO, string id);
+
+        Task<IEnumerable<ProductResponseDTO>> GetProductsListAsync();
     }
 }

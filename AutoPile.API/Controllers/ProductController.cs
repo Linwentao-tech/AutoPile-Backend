@@ -91,5 +91,12 @@ namespace AutoPile.API.Controllers
             var product = await _productService.UpdateProductByIdAsync(productUpdateDTO, id);
             return ApiResponse<ProductResponseDTO>.OkResult(product);
         }
+
+        [HttpGet("GetProductsList", Name = "GetProductsList")]
+        public async Task<IActionResult> GetProductsList()
+        {
+            var products = await _productService.GetProductsListAsync();
+            return ApiResponse<IEnumerable<ProductResponseDTO>>.OkResult(products);
+        }
     }
 }

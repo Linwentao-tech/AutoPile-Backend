@@ -40,7 +40,8 @@ namespace AutoPile.API.Validators
                 .WithMessage("Stock quantity must be greater than 0 when product is in stock");
 
             RuleFor(x => x.Category)
-                .IsInEnum().WithMessage("Invalid category value");
+            .IsInEnum().NotEmpty()
+            .WithMessage("Invalid category value");
 
             RuleFor(x => x.Ribbon)
                 .IsInEnum().WithMessage("Invalid ribbon value");
