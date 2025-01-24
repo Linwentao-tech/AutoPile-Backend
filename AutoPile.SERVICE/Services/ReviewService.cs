@@ -165,7 +165,7 @@ namespace AutoPile.SERVICE.Services
             _autoPileMongoDbContext.Remove(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
 
-            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString());
+            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString(), reviewId);
         }
     }
 }
