@@ -40,17 +40,20 @@ namespace AutoPile.DATA.Cache
         public async Task DeleteReviewAsync(string productId, string reviewId)
         {
             var reviewList = await _redisCache.GetAsyncToList(CacheKeys.Review(productId));
+
             if (reviewList != null)
             {
-                var review = reviewList.FirstOrDefault(rv => rv.Id == reviewId);
-                if (review != null)
+                var reviews = reviewList.ToList();
+                var reviewToRemove = reviews.FirstOrDefault(rv => rv.Id == reviewId);
+                if (reviewToRemove != null)
                 {
-                    reviewList.ToList().Remove(review);
+                    reviews.Remove(reviewToRemove);
+
+                    if (!reviews.Any())
+                    {
+                        await _redisCache.RemoveAsyncToList(CacheKeys.Review(productId));
+                    }
                 }
-            }
-            if (reviewList == null)
-            {
-                await _redisCache.RemoveAsync(CacheKeys.Review(productId));
             }
         }
 
