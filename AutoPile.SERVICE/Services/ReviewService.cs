@@ -95,7 +95,10 @@ namespace AutoPile.SERVICE.Services
 
             var reviews = await _autoPileMongoDbContext.Reviews.Where(r => r.ProductId == productObjectId).ToListAsync();
 
-            await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+            if (reviews.Any())
+            {
+                await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+            }
 
             return _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews);
         }
