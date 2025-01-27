@@ -95,7 +95,10 @@ namespace AutoPile.SERVICE.Services
 
             var reviews = await _autoPileMongoDbContext.Reviews.Where(r => r.ProductId == productObjectId).ToListAsync();
 
-            await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+            if (reviews.Any())
+            {
+                await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+            }
 
             return _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews);
         }
@@ -165,7 +168,7 @@ namespace AutoPile.SERVICE.Services
             _autoPileMongoDbContext.Remove(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
 
-            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString());
+            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString(), reviewId);
         }
     }
 }
