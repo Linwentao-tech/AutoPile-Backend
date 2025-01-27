@@ -87,18 +87,18 @@ namespace AutoPile.SERVICE.Services
             }
             _ = await _autoPileMongoDbContext.Products.FindAsync(productObjectId) ?? throw new NotFoundException($"Product with ID {ProductId} not found");
 
-            var reviewCache = await _reviewsCache.GetReviewAsync(ProductId);
-            if (reviewCache != null)
-            {
-                return reviewCache;
-            }
+            //var reviewCache = await _reviewsCache.GetReviewAsync(ProductId);
+            //if (reviewCache != null)
+            //{
+            //    return reviewCache;
+            //}
 
             var reviews = await _autoPileMongoDbContext.Reviews.Where(r => r.ProductId == productObjectId).ToListAsync();
 
-            if (reviews.Any())
-            {
-                await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
-            }
+            //if (reviews.Any())
+            //{
+            //    await _reviewsCache.SetReviewAsync(ProductId, _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews));
+            //}
 
             return _mapper.Map<IEnumerable<ReviewResponseDTO>>(reviews);
         }
@@ -146,7 +146,7 @@ namespace AutoPile.SERVICE.Services
             _autoPileMongoDbContext.Update(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
 
-            await _reviewsCache.UpdateReviewAsync(_mapper.Map<ReviewResponseDTO>(review));
+            //await _reviewsCache.UpdateReviewAsync(_mapper.Map<ReviewResponseDTO>(review));
             return _mapper.Map<ReviewResponseDTO>(review);
         }
 
@@ -168,7 +168,7 @@ namespace AutoPile.SERVICE.Services
             _autoPileMongoDbContext.Remove(review);
             await _autoPileMongoDbContext.SaveChangesAsync();
 
-            await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString(), reviewId);
+            //await _reviewsCache.DeleteReviewAsync(review.ProductId.ToString(), reviewId);
         }
     }
 }
