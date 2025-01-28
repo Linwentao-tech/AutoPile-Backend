@@ -127,5 +127,21 @@ namespace AutoPile.API.Controllers
             _logger.LogInformation("Whole shopping Cart Item deleted successfully with User Id {userId}", userId);
             return NoContent();
         }
+
+        /// <summary>
+        /// Retrieves specific shopping cart item list by User ID
+        /// </summary>
+        /// <returns>The shopping cart item list details</returns>
+        /// <response code="200">Returns the shopping cart item list</response>
+        /// <response code="404">If the item is not found</response>
+        /// <response code="401">If the user is not authorized</response>
+        [HttpGet("ShoppingCartItemList", Name = "ShoppingCartItemList")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> GetUserShoppingCartItemList()
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            var shoppingCartItemList = await _shoppingCartItemService.GetShoppingCartItemByUserId(userId);
+            return ApiResponse<IEnumerable<ShoppingCartItemResponseDTO>>.OkResult(shoppingCartItemList);
+        }
     }
 }

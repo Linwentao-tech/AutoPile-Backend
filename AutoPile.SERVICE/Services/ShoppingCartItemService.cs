@@ -192,5 +192,11 @@ namespace AutoPile.SERVICE.Services
 
             await _redisShoppingCartCache.SetItemAsync(shoppingCartItem);
         }
+
+        public async Task<IEnumerable<ShoppingCartItemResponseDTO>> GetShoppingCartItemByUserId(string applicationUserId)
+        {
+            var shoppingCartItemList = await _context.ShoppingCartItems.Where(s => s.UserId == applicationUserId).ToListAsync();
+            return _mapper.Map<IEnumerable<ShoppingCartItemResponseDTO>>(shoppingCartItemList);
+        }
     }
 }
