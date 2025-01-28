@@ -5,6 +5,7 @@ using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 
 namespace AutoPile.SERVICE.Services
@@ -37,14 +38,51 @@ namespace AutoPile.SERVICE.Services
             }
             _ = await _mongoContext.Products.FindAsync(productObjectId)
                 ?? throw new NotFoundException($"Product with ID {shoppingCartItemRequest.ProductId} not found");
-            var shoppingCartItem = _mapper.Map<ShoppingCartItem>(shoppingCartItemRequest);
-            shoppingCartItem.UserId = applicationUserId;
-            shoppingCartItem.CreatedAt = DateTime.UtcNow;
-            await _context.ShoppingCartItems.AddAsync(shoppingCartItem);
-            await _context.SaveChangesAsync();
-            await _redisShoppingCartCache.SetItemAsync(shoppingCartItem);
-            var shoppingCartItemDTO = _mapper.Map<ShoppingCartItemResponseDTO>(shoppingCartItem);
-            return shoppingCartItemDTO;
+
+            var existedCartItem = await _context.ShoppingCartItems.FirstOrDefaultAsync(s => s.ProductId == shoppingCartItemRequest.ProductId && s.UserId == applicationUserId);
+            if (existedCartItem != null)
+            {
+                existedCartItem.Quantity += shoppingCartItemRequest.Quantity;
+                if (existedCartItem.Quantity <= 0)
+                {
+                    // Directly remove from database
+                    _context.ShoppingCartItems.Remove(existedCartItem);
+                    await _context.SaveChangesAsync();
+
+                    // Remove from Redis cache
+                    await _redisShoppingCartCache.RemoveItemAsync(applicationUserId, existedCartItem.Id);
+
+                    // Check if cart is empty and clear Redis cache if needed
+                    var cart = await _redisShoppingCartCache.GetUserCartAsync(applicationUserId);
+                    if (cart.Count == 0)
+                    {
+                        await _redisShoppingCartCache.ClearCartAsync(applicationUserId);
+                    }
+
+                    return _mapper.Map<ShoppingCartItemResponseDTO>(existedCartItem);
+                }
+
+                await _context.SaveChangesAsync();
+                await _redisShoppingCartCache.SetItemAsync(existedCartItem);
+                return _mapper.Map<ShoppingCartItemResponseDTO>(existedCartItem);
+            }
+            else
+            {
+                // Add validation for negative quantity when creating new cart item
+                if (shoppingCartItemRequest.Quantity <= 0)
+                {
+                    throw new BadRequestException("Cannot add item with zero or negative quantity");
+                }
+
+                var shoppingCartItem = _mapper.Map<ShoppingCartItem>(shoppingCartItemRequest);
+                shoppingCartItem.UserId = applicationUserId;
+                shoppingCartItem.CreatedAt = DateTime.UtcNow;
+                await _context.ShoppingCartItems.AddAsync(shoppingCartItem);
+                await _context.SaveChangesAsync();
+                await _redisShoppingCartCache.SetItemAsync(shoppingCartItem);
+                var shoppingCartItemDTO = _mapper.Map<ShoppingCartItemResponseDTO>(shoppingCartItem);
+                return shoppingCartItemDTO;
+            }
         }
 
         public async Task DeleteShoppingCartItemAsync(int shoppingCartItemId, string applicationUserId)
