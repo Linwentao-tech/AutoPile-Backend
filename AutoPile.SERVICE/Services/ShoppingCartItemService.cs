@@ -42,6 +42,10 @@ namespace AutoPile.SERVICE.Services
             var existedCartItem = await _context.ShoppingCartItems.FirstOrDefaultAsync(s => s.ProductId == shoppingCartItemRequest.ProductId && s.UserId == applicationUserId);
             if (existedCartItem != null)
             {
+                if (existedCartItem.Quantity == 10)
+                {
+                    return _mapper.Map<ShoppingCartItemResponseDTO>(existedCartItem);
+                }
                 existedCartItem.Quantity += shoppingCartItemRequest.Quantity;
                 if (existedCartItem.Quantity <= 0)
                 {
