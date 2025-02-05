@@ -61,7 +61,7 @@ namespace AutoPile.API.Controllers
         }
 
         /// <summary>
-        /// Retrieves a specific order by its ID
+        /// Retrieves a specific order by its orderID
         /// </summary>
         /// <param name="id">The ID of the order to retrieve</param>
         /// <returns>The requested order information</returns>
@@ -70,7 +70,7 @@ namespace AutoPile.API.Controllers
         /// <response code="401">If the user is not authenticated</response>
         /// <response code="403">If the user is not authorized to view this order</response>
 
-        [HttpGet("GetOrderByOrderId/{id}", Name = "GetOrderById")]
+        [HttpGet("GetOrderByOrderId/{id}", Name = "GetOrderByOrderId")]
         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetOrderByorderId(string id)
         {
