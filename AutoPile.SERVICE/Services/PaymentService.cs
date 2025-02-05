@@ -66,7 +66,7 @@ namespace AutoPile.SERVICE.Services
                 decimal price = (product.ComparePrice ?? product.Price) * quantity;
                 totalAmount += price;
             }
-            return totalAmount;
+            return totalAmount + 10;
         }
     }
 }
