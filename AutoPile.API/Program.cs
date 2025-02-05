@@ -103,6 +103,7 @@ builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IProductService, AutoPile.SERVICE.Services.ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IRedisShoppingCartCache, RedisShoppingCartCache>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped(typeof(IRedisCache<>), typeof(RedisCache<>));
 builder.Services.AddScoped<IProductCache, ProductCache>();

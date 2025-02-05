@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AutoPile.SERVICE.Services
 {
-    public class PaymentService
+    public class PaymentService : IPaymentService
     {
         private readonly AutoPileManagementDbContext _autoPileManagementDbContext;
         private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
