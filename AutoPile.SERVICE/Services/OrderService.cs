@@ -170,6 +170,21 @@ public class OrderService : IOrderService
         }
     }
 
+    public async Task CompleteOrderAsync(string applicationUserId, int orderId)
+    {
+        _ = await _autoPileManagementDbContext.Users.FindAsync(applicationUserId)
+               ?? throw new NotFoundException($"User with ID {applicationUserId} not found");
+        var order = await _autoPileManagementDbContext.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == orderId)
+            ?? throw new NotFoundException($"Order with ID {orderId} not found");
+        if (order.UserId != applicationUserId)
+        {
+            throw new ForbiddenException("You are not authorized to modify this order");
+        }
+        order.Status = OrderStatus.Success;
+        order.PaymentStatus = PaymentStatus.Completed;
+        await _autoPileManagementDbContext.SaveChangesAsync();
+    }
+
     public async Task<IEnumerable<OrderResponseDTO>> GetUserOrdersAsync(string applicationUserId)
     {
         var ordercache = await _orderCache.GetOrderAsync(applicationUserId);

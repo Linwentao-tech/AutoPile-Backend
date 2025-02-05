@@ -80,6 +80,23 @@ namespace AutoPile.API.Controllers
         }
 
         /// <summary>
+        /// Completes an existing order for the authenticated user
+        /// </summary>
+        /// <param name="orderId">The unique identifier of the order to complete</param>
+        /// <response code="200">Order was successfully completed</response>
+        /// <response code="401">User is not authenticated</response>
+        /// <response code="404">Order was not found</response>
+        /// <response code="400">Invalid order ID or order cannot be completed</response>
+        [HttpPost("CompleteOrder", Name = "CompleteOrder")]
+        [Authorize]
+        public async Task<IActionResult> CompleteOrder([FromBody] int orderId)
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            await _orderService.CompleteOrderAsync(userId, orderId);
+            return ApiResponse.OkResult();
+        }
+
+        /// <summary>
         /// Retrieves all orders for a specific user (Admin only)
         /// </summary>
         /// <param name="userId">The ID of the user whose orders to retrieve</param>
