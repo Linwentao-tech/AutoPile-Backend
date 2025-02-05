@@ -167,7 +167,7 @@ namespace AutoPile.SERVICE.Services
                 userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
                 var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
                 userResponseInfoDTO.Roles = userResponseDTO.Roles;
-                await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
+                //await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
                 _logger.LogInformation("Successfully cached user info for user {UserId}", user.Id);
                 return (userResponseDTO, token);
             }
@@ -182,11 +182,11 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException("user id is not found");
             }
 
-            var userCached = await _userInfoCache.GetUserAsync(userId);
-            if (userCached != null)
-            {
-                return userCached;
-            }
+            //var userCached = await _userInfoCache.GetUserAsync(userId);
+            //if (userCached != null)
+            //{
+            //    return userCached;
+            //}
 
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException($"User with ID {userId} not found");
             UserInfoResponseDTO userInfoResponseDTO = _mapper.Map<UserInfoResponseDTO>(user);
