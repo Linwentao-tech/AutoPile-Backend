@@ -124,6 +124,19 @@ public class OrderService : IOrderService
         return _mapper.Map<OrderResponseDTO>(order);
     }
 
+    public async Task<OrderResponseDTO> GetOrderByOrderIdAsync(string orderId, string applicationUserId)
+    {
+        _ = await _autoPileManagementDbContext.Users.FindAsync(applicationUserId)
+                ?? throw new NotFoundException($"User with ID {applicationUserId} not found");
+        var order = await _autoPileManagementDbContext.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.OrderNumber == orderId)
+            ?? throw new NotFoundException($"Order with ID {orderId} not found");
+        if (order.UserId != applicationUserId)
+        {
+            throw new ForbiddenException("You are not authorized to view this order");
+        }
+        return _mapper.Map<OrderResponseDTO>(order);
+    }
+
     public async Task DeleteOrderAsync(int orderId, string userId)
     {
         using var transaction = await _autoPileManagementDbContext.Database.BeginTransactionAsync();

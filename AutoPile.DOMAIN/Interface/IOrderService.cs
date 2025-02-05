@@ -12,4 +12,6 @@ public interface IOrderService
     Task<OrderResponseDTO> UpdateOrderAsync(OrderUpdateDTO orderUpdateDTO, int orderId, string userId);
 
     Task DeleteOrderAsync(int orderId, string userId);
+
+    Task<OrderResponseDTO> GetOrderByOrderIdAsync(string orderId, string applicationUserId);
 }

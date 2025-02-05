@@ -61,6 +61,25 @@ namespace AutoPile.API.Controllers
         }
 
         /// <summary>
+        /// Retrieves a specific order by its ID
+        /// </summary>
+        /// <param name="id">The ID of the order to retrieve</param>
+        /// <returns>The requested order information</returns>
+        /// <response code="200">Returns the requested order</response>
+        /// <response code="404">If the order is not found</response>
+        /// <response code="401">If the user is not authenticated</response>
+        /// <response code="403">If the user is not authorized to view this order</response>
+
+        [HttpGet("GetOrderByOrderId/{id}", Name = "GetOrderById")]
+        [Authorize(Roles = "Admin,User")]
+        public async Task<IActionResult> GetOrderByorderId(string id)
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            var orderResponse = await _orderService.GetOrderByOrderIdAsync(id, userId);
+            return ApiResponse<OrderResponseDTO>.OkResult(orderResponse);
+        }
+
+        /// <summary>
         /// Retrieves all orders for a specific user (Admin only)
         /// </summary>
         /// <param name="userId">The ID of the user whose orders to retrieve</param>
