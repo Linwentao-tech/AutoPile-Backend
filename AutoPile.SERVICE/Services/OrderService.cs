@@ -187,18 +187,18 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<OrderResponseDTO>> GetUserOrdersAsync(string applicationUserId)
     {
-        var ordercache = await _orderCache.GetOrderAsync(applicationUserId);
-        if (ordercache != null)
-        {
-            return ordercache;
-        }
+        //var ordercache = await _orderCache.GetOrderAsync(applicationUserId);
+        //if (ordercache != null)
+        //{
+        //    return ordercache;
+        //}
 
         var orders = await _autoPileManagementDbContext.Orders.Include(o => o.OrderItems)
             .Where(o => o.UserId == applicationUserId)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
-        await _orderCache.SetOrderAsync(applicationUserId, _mapper.Map<IEnumerable<OrderResponseDTO>>(orders));
+        //await _orderCache.SetOrderAsync(applicationUserId, _mapper.Map<IEnumerable<OrderResponseDTO>>(orders));
 
         return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
     }
