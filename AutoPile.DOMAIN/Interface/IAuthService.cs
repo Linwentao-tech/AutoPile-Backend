@@ -1,16 +1,17 @@
 ﻿using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
+using AutoPile.DOMAIN.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoPile.SERVICE.Services
 {
     public interface IAuthService
     {
-        Task<(UserResponseDTO, string)> SignupAdminAsync(UserSignupDTO userSignupDTO);
+        Task<(UserResponseDTO, string, string)> SignupAdminAsync(UserSignupDTO userSignupDTO);
 
-        Task<(UserResponseDTO, string)> SignupUserAsync([FromBody] UserSignupDTO userSignupDTO);
+        Task<(UserResponseDTO, string, string)> SignupUserAsync([FromBody] UserSignupDTO userSignupDTO);
 
-        Task<(UserResponseDTO, string)> SigninAsync(UserSigninDTO userSigninDTO);
+        Task<(UserResponseDTO, string, string)> SigninAsync(UserSigninDTO userSigninDTO);
 
         Task<UserInfoResponseDTO> GetUserInfoAsync(string userId);
 
@@ -25,5 +26,11 @@ namespace AutoPile.SERVICE.Services
         Task ResetPasswordAsync(UserResetPasswordDTO userResetPasswordDTO);
 
         Task ValidatePasswordResetTokenAsync(string email, string token);
+
+        Task RevokeRefreshTokenAsync(string userId);
+
+        Task<TokenRefreshResponse> RefreshTokenAsync(string refreshToken);
+
+        Task UpdateUserRefreshTokenAsync(ApplicationUser user, string refreshToken);
     }
 }

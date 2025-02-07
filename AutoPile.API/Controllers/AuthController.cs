@@ -4,6 +4,7 @@ using AutoPile.DOMAIN.Models;
 using AutoPile.DOMAIN.Models.Entities;
 using AutoPile.SERVICE.Services;
 using AutoPile.SERVICE.Utilities;
+using Azure.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -39,16 +40,27 @@ namespace AutoPile.API.Controllers
         [HttpPost("SignupUser", Name = "SignupUser")]
         public async Task<IActionResult> SignupUser([FromBody] UserSignupDTO userSignupDTO)
         {
-            var (userResponseDTO, token) = await _authService.SignupUserAsync(userSignupDTO);
-            var cookieOptions = new CookieOptions
+            var (userResponseDTO, accessToken, refreshToken) = await _authService.SignupUserAsync(userSignupDTO);
+            var accessTokenCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(3),
+                Expires = DateTime.UtcNow.AddMinutes(30),
                 Path = "/"
             };
-            Response.Cookies.Append("AuthToken", token, cookieOptions);
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("AuthToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("RefreshToken", refreshToken, refreshTokenCookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -62,16 +74,27 @@ namespace AutoPile.API.Controllers
         [HttpPost("SignupAdmin", Name = "SignupAdmin")]
         public async Task<IActionResult> SignupAdmin([FromBody] UserSignupDTO userSignupDTO)
         {
-            var (userResponseDTO, token) = await _authService.SignupAdminAsync(userSignupDTO);
-            var cookieOptions = new CookieOptions
+            var (userResponseDTO, accessToken, refreshToken) = await _authService.SignupAdminAsync(userSignupDTO);
+            var accessTokenCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(3),
+                Expires = DateTime.UtcNow.AddMinutes(30),
                 Path = "/"
             };
-            Response.Cookies.Append("AuthToken", token, cookieOptions);
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("AuthToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("RefreshToken", refreshToken, refreshTokenCookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -85,16 +108,27 @@ namespace AutoPile.API.Controllers
         [HttpPost("Signin", Name = "Signin")]
         public async Task<IActionResult> Signin([FromBody] UserSigninDTO userSigninDTO)
         {
-            var (userResponseDTO, token) = await _authService.SigninAsync(userSigninDTO);
-            var cookieOptions = new CookieOptions
+            var (userResponseDTO, accessToken, refreshToken) = await _authService.SigninAsync(userSigninDTO);
+            var accessTokenCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(3),
+                Expires = DateTime.UtcNow.AddMinutes(30),
                 Path = "/"
             };
-            Response.Cookies.Append("AuthToken", token, cookieOptions);
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("AuthToken", accessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("RefreshToken", refreshToken, refreshTokenCookieOptions);
             return ApiResponse<UserResponseDTO>.OkResult(userResponseDTO);
         }
 
@@ -224,6 +258,48 @@ namespace AutoPile.API.Controllers
                 Path = "/"
             });
             return ApiResponse.OkResult("Logged out successfully");
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] TokenRefreshRequest tokenRefreshRequest)
+        {
+            var result = await _authService.RefreshTokenAsync(tokenRefreshRequest.RefreshToken);
+
+            var accessTokenCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddMinutes(30),
+                Path = "/"
+            };
+
+            var refreshTokenCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("AuthToken", result.AccessToken, accessTokenCookieOptions);
+            Response.Cookies.Append("RefreshToken", result.RefreshToken, refreshTokenCookieOptions);
+
+            return ApiResponse<TokenRefreshResponse>.OkResult(result);
+        }
+
+        [HttpPost("revoke-token")]
+        [Authorize]
+        public async Task<IActionResult> RevokeToken()
+        {
+            var userId = HttpContext.Items["UserId"]?.ToString();
+            await _authService.RevokeRefreshTokenAsync(userId);
+
+            Response.Cookies.Delete("AuthToken");
+            Response.Cookies.Delete("RefreshToken");
+
+            return ApiResponse.OkResult("Token revoked successfully");
         }
     }
 }

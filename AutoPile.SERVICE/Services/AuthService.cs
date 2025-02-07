@@ -45,7 +45,7 @@ namespace AutoPile.SERVICE.Services
             _logger = logger;
         }
 
-        public async Task<(UserResponseDTO, string)> SignupAdminAsync(UserSignupDTO userSignupDTO)
+        public async Task<(UserResponseDTO, string, string)> SignupAdminAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
@@ -84,14 +84,16 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
             }
 
-            var addToUserResult = await _userManager.AddToRoleAsync(user, "User");
-            if (!addToUserResult.Succeeded)
-            {
-                var errors = addToUserResult.Errors.Select(e => e.Description);
-                throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
-            }
+            //var addToUserResult = await _userManager.AddToRoleAsync(user, "User");
+            //if (!addToUserResult.Succeeded)
+            //{
+            //    var errors = addToUserResult.Errors.Select(e => e.Description);
+            //    throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
+            //}
 
-            var token = _jwtTokenGenerator.GenerateJwtToken(user);
+            var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+            await UpdateUserRefreshTokenAsync(user, refreshToken);
 
             var responseDTO = new UserResponseDTO
             {
@@ -102,10 +104,10 @@ namespace AutoPile.SERVICE.Services
                 Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return (responseDTO, token);
+            return (responseDTO, accessToken, refreshToken);
         }
 
-        public async Task<(UserResponseDTO, string)> SignupUserAsync(UserSignupDTO userSignupDTO)
+        public async Task<(UserResponseDTO, string, string)> SignupUserAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
@@ -142,7 +144,9 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
             }
 
-            var token = _jwtTokenGenerator.GenerateJwtToken(user);
+            var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+            await UpdateUserRefreshTokenAsync(user, refreshToken);
 
             var responseDTO = new UserResponseDTO
             {
@@ -152,16 +156,19 @@ namespace AutoPile.SERVICE.Services
                 Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return (responseDTO, token);
+            return (responseDTO, accessToken, refreshToken);
         }
 
-        public async Task<(UserResponseDTO, string)> SigninAsync(UserSigninDTO userSigninDTO)
+        public async Task<(UserResponseDTO, string, string)> SigninAsync(UserSigninDTO userSigninDTO)
         {
             var user = await _userManager.FindByEmailAsync(userSigninDTO.Email);
 
             if (user != null && await _userManager.CheckPasswordAsync(user, userSigninDTO.Password))
             {
-                var token = _jwtTokenGenerator.GenerateJwtToken(user);
+                var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+                var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+                await UpdateUserRefreshTokenAsync(user, refreshToken);
+
                 UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
 
                 userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
@@ -169,7 +176,7 @@ namespace AutoPile.SERVICE.Services
                 userResponseInfoDTO.Roles = userResponseDTO.Roles;
                 //await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
                 _logger.LogInformation("Successfully cached user info for user {UserId}", user.Id);
-                return (userResponseDTO, token);
+                return (userResponseDTO, accessToken, refreshToken);
             }
 
             throw new NotFoundException("Email does not exist or incorrect password");
@@ -367,6 +374,47 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("Token expired or invalid");
             }
+        }
+
+        public async Task UpdateUserRefreshTokenAsync(ApplicationUser user, string refreshToken)
+        {
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<TokenRefreshResponse> RefreshTokenAsync(string refreshToken)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null)
+                throw new NotFoundException("Invalid refresh token");
+
+            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                throw new BadRequestException("Refresh token expired");
+
+            var newAccessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var newRefreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+
+            await UpdateUserRefreshTokenAsync(user, newRefreshToken);
+
+            return new TokenRefreshResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+        public async Task RevokeRefreshTokenAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new NotFoundException($"User with ID {userId} not found");
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await _userManager.UpdateAsync(user);
         }
     }
 }
