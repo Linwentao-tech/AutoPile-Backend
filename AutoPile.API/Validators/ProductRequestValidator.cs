@@ -29,10 +29,10 @@ namespace AutoPile.API.Validators
                 .PrecisionScale(18, 2, true).WithMessage("Price cannot have more than 2 decimal places");
 
             RuleFor(x => x.ComparePrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Compare price must be greater than or equal to 0")
-                .PrecisionScale(18, 2, true).WithMessage("Compare price cannot have more than 2 decimal places")
-                .Must((model, comparePrice) => comparePrice == 0 || comparePrice > model.Price)
-                .WithMessage("Compare price must be greater than regular price when specified");
+                .GreaterThanOrEqualTo(0).When(x => x.ComparePrice.HasValue)
+                .PrecisionScale(18, 2, true).When(x => x.ComparePrice.HasValue)
+                .Must((model, comparePrice) => !comparePrice.HasValue || comparePrice.Value < model.Price)
+                .WithMessage("Compare price must be less than regular price when specified");
 
             RuleFor(x => x.StockQuantity)
                 .GreaterThanOrEqualTo(0).WithMessage("Stock quantity must be greater than or equal to 0")
@@ -40,7 +40,8 @@ namespace AutoPile.API.Validators
                 .WithMessage("Stock quantity must be greater than 0 when product is in stock");
 
             RuleFor(x => x.Category)
-                .IsInEnum().WithMessage("Invalid category value");
+            .IsInEnum().NotEmpty()
+            .WithMessage("Invalid category value");
 
             RuleFor(x => x.Ribbon)
                 .IsInEnum().WithMessage("Invalid ribbon value");

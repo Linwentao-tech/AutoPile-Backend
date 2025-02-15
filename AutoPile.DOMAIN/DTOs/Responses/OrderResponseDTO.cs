@@ -1,4 +1,5 @@
-﻿using AutoPile.DOMAIN.Models.Entities;
+﻿using AutoPile.DOMAIN.Enum;
+using AutoPile.DOMAIN.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace AutoPile.DOMAIN.DTOs.Responses
         public string UserId { get; set; }
         public string OrderNumber { get; set; }
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; }
+        public OrderStatus Status { get; set; }
         public decimal SubTotal { get; set; }
         public decimal DeliveryFee { get; set; }
         public decimal TotalAmount { get; set; }

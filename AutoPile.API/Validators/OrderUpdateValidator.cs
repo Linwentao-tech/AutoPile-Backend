@@ -13,9 +13,6 @@ namespace AutoPile.API.Validators
 
         public OrderUpdateValidator()
         {
-            RuleFor(x => x.Status)
-               .NotEmpty().WithMessage("Status is required")
-               .MaximumLength(50);
             RuleFor(x => x.PaymentMethod)
                 .NotEmpty().WithMessage("Payment method is required")
                 .MaximumLength(50).WithMessage("Payment method cannot exceed 50 characters")

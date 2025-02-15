@@ -1,13 +1,17 @@
 ﻿using AutoMapper;
+using AutoPile.DATA.Cache;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using AutoPile.DOMAIN.DTOs.Responses;
 using AutoPile.DOMAIN.Models.Entities;
+using AutoPile.DOMAIN.Models.MessageQueue;
 using AutoPile.SERVICE.Utilities;
 using DnsClient.Internal;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Resend;
 using System;
 using System.Collections.Generic;
@@ -25,22 +29,96 @@ namespace AutoPile.SERVICE.Services
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IResend _resend;
         private readonly IConfiguration _configuration;
+        private readonly IEmailQueueService _emailQueueService;
+        private readonly IUserInfoCache _userInfoCache;
+        private readonly ILogger<IAuthService> _logger;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
+        public AuthService(UserManager<ApplicationUser> userManager, ILogger<IAuthService> logger, IEmailQueueService emailQueueService, IConfiguration configuration, IMapper mapper, IUserInfoCache userInfoCache, IJwtTokenGenerator jwtTokenGenerator, IResend resend)
         {
             _userManager = userManager;
             _mapper = mapper;
             _jwtTokenGenerator = jwtTokenGenerator;
             _resend = resend;
             _configuration = configuration;
+            _emailQueueService = emailQueueService;
+            _userInfoCache = userInfoCache;
+            _logger = logger;
         }
 
-        public async Task<UserResponseDTO> SignupAsync(UserSignupDTO userSignupDTO)
+        public async Task<(UserResponseDTO, string, string)> SignupAdminAsync(UserSignupDTO userSignupDTO)
         {
             var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
             if (existingUser != null)
             {
                 throw new BadRequestException("Email already registered");
+            }
+
+            var existUserWithPhone = await _userManager.Users.AnyAsync(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
+            if (existUserWithPhone)
+            {
+                throw new BadRequestException("Phone number already registered");
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = userSignupDTO.UserName,
+                Email = userSignupDTO.Email,
+                FirstName = userSignupDTO.FirstName,
+                LastName = userSignupDTO.LastName,
+                PhoneNumber = userSignupDTO.PhoneNumber,
+                EmailConfirmed = true,
+                PhoneNumberConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, userSignupDTO.Password);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                throw new BadRequestException($"Failed to create user: {string.Join(", ", errors)}");
+            }
+
+            var addToAdminResult = await _userManager.AddToRoleAsync(user, "Admin");
+            if (!addToAdminResult.Succeeded)
+            {
+                var errors = addToAdminResult.Errors.Select(e => e.Description);
+                throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
+            }
+
+            //var addToUserResult = await _userManager.AddToRoleAsync(user, "User");
+            //if (!addToUserResult.Succeeded)
+            //{
+            //    var errors = addToUserResult.Errors.Select(e => e.Description);
+            //    throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
+            //}
+
+            var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+            await UpdateUserRefreshTokenAsync(user, refreshToken);
+
+            var responseDTO = new UserResponseDTO
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+
+                Roles = await _userManager.GetRolesAsync(user)
+            };
+
+            return (responseDTO, accessToken, refreshToken);
+        }
+
+        public async Task<(UserResponseDTO, string, string)> SignupUserAsync(UserSignupDTO userSignupDTO)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(userSignupDTO.Email);
+            if (existingUser != null)
+            {
+                throw new BadRequestException("Email already registered");
+            }
+
+            var existUserWithPhone = await _userManager.Users.AnyAsync(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
+            if (existUserWithPhone)
+            {
+                throw new BadRequestException("Phone number already registered");
             }
 
             var user = new ApplicationUser
@@ -66,32 +144,42 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException($"Failed to add user to role: {string.Join(", ", errors)}");
             }
 
-            var token = _jwtTokenGenerator.GenerateJwtToken(user);
+            var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+            await UpdateUserRefreshTokenAsync(user, refreshToken);
 
             var responseDTO = new UserResponseDTO
             {
                 Id = user.Id,
                 UserName = user.UserName,
                 Email = user.Email,
-                Token = token
+                Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return responseDTO;
+            return (responseDTO, accessToken, refreshToken);
         }
 
-        public async Task<UserResponseDTO> SigninAsync(UserSigninDTO userSigninDTO)
+        public async Task<(UserResponseDTO, string, string)> SigninAsync(UserSigninDTO userSigninDTO)
         {
             var user = await _userManager.FindByEmailAsync(userSigninDTO.Email);
 
             if (user != null && await _userManager.CheckPasswordAsync(user, userSigninDTO.Password))
             {
-                var token = _jwtTokenGenerator.GenerateJwtToken(user);
-                UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
-                userResponseDTO.Token = token;
+                var accessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+                var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+                await UpdateUserRefreshTokenAsync(user, refreshToken);
 
-                return userResponseDTO;
+                UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
+
+                userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
+                var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
+                userResponseInfoDTO.Roles = userResponseDTO.Roles;
+                //await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
+                _logger.LogInformation("Successfully cached user info for user {UserId}", user.Id);
+                return (userResponseDTO, accessToken, refreshToken);
             }
-            throw new UnauthorizedException("Email does not exist or incorrect password");
+
+            throw new NotFoundException("Email does not exist or incorrect password");
         }
 
         public async Task<UserInfoResponseDTO> GetUserInfoAsync(string userId)
@@ -100,8 +188,16 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("user id is not found");
             }
+
+            //var userCached = await _userInfoCache.GetUserAsync(userId);
+            //if (userCached != null)
+            //{
+            //    return userCached;
+            //}
+
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException($"User with ID {userId} not found");
             UserInfoResponseDTO userInfoResponseDTO = _mapper.Map<UserInfoResponseDTO>(user);
+            userInfoResponseDTO.Roles = await _userManager.GetRolesAsync(user);
             return userInfoResponseDTO;
         }
 
@@ -114,7 +210,7 @@ namespace AutoPile.SERVICE.Services
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
             if (user.Id != userId)
             {
-                throw new UnauthorizedException();
+                throw new ForbiddenException();
             }
             var isConfirmed = await _userManager.IsEmailConfirmedAsync(user);
             if (isConfirmed)
@@ -133,17 +229,32 @@ namespace AutoPile.SERVICE.Services
             await _userManager.UpdateAsync(user);
 
             var emailConfirmationUrl = $"{Environment.GetEnvironmentVariable("DOMAIN") ?? _configuration["Domain"]}/Auth/VerifyEmailConfirmationLink?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
-            var message = new EmailMessage();
-            message.From = "Emailconfirm@autopile.store";
-            message.To.Add(email);
-            message.Subject = "Email Confirmation Link";
-            message.HtmlBody = $@"
-                <p>Hello,</p>
-                <p>Please click the link below to verify your email:</p>
-                <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>
-                <p>If you did not sign up, please ignore this email.</p>"; ;
+            //var message = new EmailMessage();
+            //message.From = "Emailconfirm@autopile.store";
+            //message.To.Add(email);
+            //message.Subject = "Email Confirmation Link";
+            //message.HtmlBody = $@"
+            //    <p>Hello,</p>
+            //    <p>Please click the link below to verify your email:</p>
+            //    <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>
+            //    <p>If you did not sign up, please ignore this email.</p>"; ;
 
-            await _resend.EmailSendAsync(message);
+            //await _resend.EmailSendAsync(message);
+            var emailMessage = new DOMAIN.Models.MessageQueue.EmailMessage
+            {
+                To = email,
+                Subject = "Email Confirmation Link",
+                MessageType = "EmailConfirmation",
+                Body = $@"<p>Hello,</p><p>Please click the link below to verify your email:</p>
+                     <p><a href='{emailConfirmationUrl}'>Email confirmation link</a></p>",
+                AdditionalData = new Dictionary<string, string>
+                {
+                    ["UserId"] = userId,
+                    ["Token"] = token
+                }
+            };
+
+            await _emailQueueService.QueueEmailMessage(emailMessage);
             return token.ToString();
         }
 
@@ -185,39 +296,49 @@ namespace AutoPile.SERVICE.Services
         {
             if (userId == null)
             {
-                throw new UnauthorizedException("User ID not found in token.");
+                throw new NotFoundException("User ID not found in token.");
             }
 
             var user = await _userManager.FindByIdAsync(userId) ?? throw new NotFoundException("User not found");
             _mapper.Map(userUpdateInfoDTO, user);
+
+            await _userInfoCache.SetUserAsync(userId, _mapper.Map<UserInfoResponseDTO>(user));
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task<string> SendResetPasswordTokenAsync(string email, string userId)
+        public async Task<string> SendResetPasswordTokenAsync(string email)
         {
             if (string.IsNullOrEmpty(email))
             {
                 throw new BadRequestException("email is required");
             }
             var user = await _userManager.FindByEmailAsync(email) ?? throw new NotFoundException($"User with email {email} not found");
-            if (user.Id != userId)
-            {
-                throw new UnauthorizedException();
-            }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            var emailConfirmationUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
-            var message = new EmailMessage();
-            message.From = "PasswordReset@autopile.store";
-            message.To.Add(email);
-            message.Subject = "Password Reset Link";
-            message.HtmlBody = $@"
-                <p>Hello,</p>
-                <p>Please click the link below to Reset your password:</p>
-                <p><a href='{emailConfirmationUrl}'>Password Reset link</a></p>
-                <p>If you did not request password reset, please ignore this email.</p>"; ;
+            var emailResetUrl = $"https://www.autopile.store/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
+            //var message = new Resend.EmailMessage();
+            //message.From = "PasswordReset@autopile.store";
+            //message.To.Add(email);
+            //message.Subject = "Password Reset Link";
+            //message.HtmlBody = $@"
+            //    <p>Hello,</p>
+            //    <p>Please click the link below to Reset your password:</p>
+            //    <p><a href='{emailConfirmationUrl}'>Password Reset link</a></p>
+            //    <p>If you did not request password reset, please ignore this email.</p>"; ;
 
-            await _resend.EmailSendAsync(message);
+            //await _resend.EmailSendAsync(message);
+
+            var emailMessage = new DOMAIN.Models.MessageQueue.EmailMessage
+            {
+                To = email,
+                Subject = "Password Reset Link",
+                MessageType = "PasswordReset",
+                Body = $@"<p>Hello,</p><p>Please click the link below to Reset your password:</p>
+                     <p><a href='{emailResetUrl}'>Password Reset link</a></p>
+                     <p>If you did not request password reset, please ignore this email.</p>"
+            };
+
+            await _emailQueueService.QueueEmailMessage(emailMessage);
             return token.ToString();
         }
 
@@ -229,7 +350,7 @@ namespace AutoPile.SERVICE.Services
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new Exception($"Password reset failed: {errors}");
+                throw new BadRequestException($"Password reset failed: {errors}");
             }
         }
 
@@ -253,6 +374,47 @@ namespace AutoPile.SERVICE.Services
             {
                 throw new BadRequestException("Token expired or invalid");
             }
+        }
+
+        public async Task UpdateUserRefreshTokenAsync(ApplicationUser user, string refreshToken)
+        {
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<TokenRefreshResponse> RefreshTokenAsync(string refreshToken)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null)
+                throw new NotFoundException("Invalid refresh token");
+
+            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                throw new BadRequestException("Refresh token expired");
+
+            var newAccessToken = _jwtTokenGenerator.GenerateJwtToken(user);
+            var newRefreshToken = RefreshTokenGenerator.GenerateRefreshToken();
+
+            await UpdateUserRefreshTokenAsync(user, newRefreshToken);
+
+            return new TokenRefreshResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+        public async Task RevokeRefreshTokenAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new NotFoundException($"User with ID {userId} not found");
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await _userManager.UpdateAsync(user);
         }
     }
 }

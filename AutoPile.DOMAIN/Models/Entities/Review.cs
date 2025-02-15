@@ -20,8 +20,12 @@ namespace AutoPile.DOMAIN.Models.Entities
         public string Subtitle { get; set; }
         public string Content { get; set; }
         public int Rating { get; set; }
-        public byte[] Image { get; set; }
-        public string ImageContentType { get; set; }
+
+        //public byte[] Image { get; set; }
+        //public string ImageContentType { get; set; }
+        public string? ImageUrl { get; set; }
+
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

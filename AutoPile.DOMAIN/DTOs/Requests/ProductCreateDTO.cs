@@ -15,7 +15,7 @@ namespace AutoPile.DOMAIN.DTOs.Requests
         public string ProductInfo { get; set; }
         public string SKU { get; set; }
         public decimal Price { get; set; }
-        public decimal ComparePrice { get; set; }
+        public decimal? ComparePrice { get; set; }
         public bool IsInStock { get; set; }
         public int StockQuantity { get; set; }
         public Ribbon Ribbon { get; set; }
