@@ -30,27 +30,27 @@ namespace AutoPile.SERVICE.Services
             var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             await containerClient.CreateIfNotExistsAsync();
 
-            // Create unique blob name
+          
             string blobName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
             var blobClient = containerClient.GetBlobClient(blobName);
 
-            // Upload the file
+            
             using var stream = file.OpenReadStream();
             await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
 
-            // Generate SAS token
+           
             var sasBuilder = new BlobSasBuilder
             {
                 BlobContainerName = _containerName,
                 BlobName = blobName,
-                Resource = "b", // b for blob
+                Resource = "b",
                 StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddYears(1), // Or your preferred expiration
+                ExpiresOn = DateTimeOffset.UtcNow.AddYears(1),
             };
-            sasBuilder.SetPermissions(BlobSasPermissions.Read); // Only allow read
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
             var sasToken = blobClient.GenerateSasUri(sasBuilder).ToString();
-            return sasToken; // This will return the full URL with SAS token
+            return sasToken;
         }
 
         public async Task DeleteImageAsync(string imageUrl)
