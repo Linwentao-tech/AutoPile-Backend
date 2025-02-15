@@ -7,6 +7,8 @@ An e-commerce backend system for automotive parts and accessories, built with .N
 The API is deployed and accessible at:
 https://autopile-gafnbva6egabe5ap.australiaeast-01.azurewebsites.net/index.html
 
+⚙️ **Frontend Repository**: [AutoPile Frontend](https://github.com/Linwentao-tech/Autopile-Frontend)
+
 ## 🏗️ Architecture
 
 The solution follows a clean architecture pattern with four main projects:
