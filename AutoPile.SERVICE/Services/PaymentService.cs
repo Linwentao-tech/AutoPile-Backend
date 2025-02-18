@@ -1,27 +1,22 @@
-﻿using AutoMapper;
-using AutoPile.DATA.Data;
+﻿using AutoPile.DATA.Data;
 using AutoPile.DATA.Exceptions;
 using AutoPile.DOMAIN.DTOs.Requests;
 using MongoDB.Bson;
 using Stripe;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace AutoPile.SERVICE.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly AutoPileManagementDbContext _autoPileManagementDbContext;
         private readonly AutoPileMongoDbContext _autoPileMongoDbContext;
-        private readonly IMapper _mapper;
+        private readonly IStripeService _stripeService;
 
-        public PaymentService(AutoPileManagementDbContext autoPileManagementDbContext, AutoPileMongoDbContext autoPileMongoDbContext, IMapper mapper)
+        public PaymentService(AutoPileMongoDbContext autoPileMongoDbContext, IStripeService stripeService)
         {
-            _autoPileManagementDbContext = autoPileManagementDbContext;
             _autoPileMongoDbContext = autoPileMongoDbContext;
-            _mapper = mapper;
+            _stripeService = stripeService;
         }
 
         public async Task<PaymentIntent> PaymentIntentCreateAsync(PaymentIntentCreate paymentIntentCreate)
@@ -32,19 +27,7 @@ namespace AutoPile.SERVICE.Services
             }
 
             var totalAmount = await CalculateTotalAmountAsync(paymentIntentCreate.Items);
-
-            var options = new PaymentIntentCreateOptions
-            {
-                Amount = (long)(totalAmount * 100),
-                Currency = "aud",
-                AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-                {
-                    Enabled = true,
-                },
-            };
-
-            var service = new PaymentIntentService();
-            return await service.CreateAsync(options);
+            return await _stripeService.CreatePaymentIntentAsync((long)(totalAmount * 100), "aud");
         }
 
         private async Task<decimal> CalculateTotalAmountAsync(Item[] items)

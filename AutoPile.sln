@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPile.SERVICE", "AutoPil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPile.API", "AutoPile.API\AutoPile.API.csproj", "{3DDF33AA-990E-4BA9-AC47-29E2EB706D0C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPile.UnitTests", "AutoPile.UnitTests\AutoPile.UnitTests.csproj", "{D8051ACC-12FD-4ED0-BE59-5D937D0A1A84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{3DDF33AA-990E-4BA9-AC47-29E2EB706D0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DDF33AA-990E-4BA9-AC47-29E2EB706D0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DDF33AA-990E-4BA9-AC47-29E2EB706D0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8051ACC-12FD-4ED0-BE59-5D937D0A1A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8051ACC-12FD-4ED0-BE59-5D937D0A1A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8051ACC-12FD-4ED0-BE59-5D937D0A1A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8051ACC-12FD-4ED0-BE59-5D937D0A1A84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
