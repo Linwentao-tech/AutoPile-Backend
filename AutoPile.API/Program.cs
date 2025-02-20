@@ -27,6 +27,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Enhanced logging configuration
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.AddAzureWebAppDiagnostics();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
+builder.Logging.AddFilter("System", LogLevel.Warning);
+builder.Logging.AddFilter("AutoPile", LogLevel.Trace);
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -111,6 +121,39 @@ builder.Services.AddScoped<IReviewsCache, ReviewsCache>();
 builder.Services.AddScoped<IUserInfoCache, UserInfoCache>();
 builder.Services.AddScoped<IOrderCache, OrderCache>();
 builder.Services.AddScoped<IStripeService, StripeService>();
+
+// Register queue clients as singletons
+builder.Services.AddSingleton<QueueClient>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<QueueClient>>();
+    var blobConnectionString = Environment.GetEnvironmentVariable("BlobStorage");
+
+    if (string.IsNullOrEmpty(blobConnectionString))
+    {
+        logger.LogError("BlobStorage connection string is empty");
+        throw new InvalidOperationException("BlobStorage environment variable is not set");
+    }
+
+    logger.LogInformation("Creating email queue client");
+    return new QueueClient(blobConnectionString, "email-queue",
+        new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
+});
+
+builder.Services.AddSingleton<QueueClient>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<QueueClient>>();
+    var blobConnectionString = Environment.GetEnvironmentVariable("BlobStorage");
+
+    if (string.IsNullOrEmpty(blobConnectionString))
+    {
+        logger.LogError("BlobStorage connection string is empty");
+        throw new InvalidOperationException("BlobStorage environment variable is not set");
+    }
+
+    logger.LogInformation("Creating inventory queue client");
+    return new QueueClient(blobConnectionString, "inventory-queue",
+        new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
+});
 // Add this to the service configuration section in Program.cs
 // Register both QueueClients
 // Register QueueClient for Email Queue
@@ -153,13 +196,33 @@ var mongoConnectionString = Environment.GetEnvironmentVariable("MongoDB") ??
 var mongoDbName = "AutoPileDb";
 
 builder.Services.AddSingleton<IMongoClient>(sp =>
-    new MongoClient(mongoConnectionString));
+{
+    var logger = sp.GetRequiredService<ILogger<IMongoClient>>();
+    logger.LogInformation("Creating MongoClient with connection string");
+    if (string.IsNullOrEmpty(mongoConnectionString))
+    {
+        logger.LogError("MongoDB connection string is empty");
+        throw new InvalidOperationException("MongoDB connection string is not configured");
+    }
+    return new MongoClient(mongoConnectionString);
+});
 
 builder.Services.AddScoped(sp =>
 {
-    var client = sp.GetRequiredService<IMongoClient>();
-    var database = client.GetDatabase(mongoDbName);
-    return AutoPileMongoDbContext.Create(database);
+    var logger = sp.GetRequiredService<ILogger<AutoPileMongoDbContext>>();
+    try
+    {
+        var client = sp.GetRequiredService<IMongoClient>();
+        logger.LogInformation("Getting MongoDB database: {DatabaseName}", mongoDbName);
+        var database = client.GetDatabase(mongoDbName);
+        logger.LogInformation("Creating MongoDB context");
+        return AutoPileMongoDbContext.Create(database);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to create MongoDB context");
+        throw;
+    }
 });
 
 //builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
@@ -201,49 +264,115 @@ StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("StripeKey");
 
 var app = builder.Build();
 
-app.UseMiddleware<UserIdExtractMiddleware>();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHsts();
+// Get logger for logging app startup
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AutoPile API V1");
-    c.RoutePrefix = string.Empty; // This makes Swagger UI available at root
-    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-    c.DefaultModelsExpandDepth(-1); // Hide schemas section by default
-});
+    logger.LogInformation("====== Application Starting - {Time} ======", DateTime.UtcNow);
 
-app.UseHttpsRedirection();
-app.UseRouting();
-app.UseCors("AllowLocalhost3000");
-app.UseAuthentication();
-app.UseAuthorization();
+    // Log environment variables (excluding sensitive values)
+    logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
+    logger.LogInformation("Checking if key environment variables exist:");
+    logger.LogInformation("JWTKEY exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JWTKEY")));
+    logger.LogInformation("MongoDB exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MongoDB")));
+    logger.LogInformation("BlobStorage exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("BlobStorage")));
+    logger.LogInformation("REDIS exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("REDIS")));
+    logger.LogInformation("StripeKey exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("StripeKey")));
+    logger.LogInformation("RESEND_APITOKEN exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RESEND_APITOKEN")));
+    logger.LogInformation("ISSUER exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ISSUER")));
+    logger.LogInformation("AUDIENCE exists: {Exists}", !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AUDIENCE")));
 
-app.MapControllers();
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-    var roles = new[] { "Admin", "User" };
+    // Log middleware configuration
+    logger.LogInformation("Core services registered, initializing middleware...");
 
-    foreach (var role in roles)
+    logger.LogInformation("Configuring middlewares - Start");
+
+    app.UseMiddleware<UserIdExtractMiddleware>();
+    logger.LogInformation("Configured UserIdExtractMiddleware");
+
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+    logger.LogInformation("Configured ExceptionHandlingMiddleware");
+
+    app.UseHsts();
+    logger.LogInformation("Configured HSTS");
+
+    if (app.Environment.IsDevelopment())
     {
-        if (!await roleManager.RoleExistsAsync(role))
+        app.MapOpenApi();
+        app.UseSwagger();
+        app.UseSwaggerUI();
+        logger.LogInformation("Configured development specific settings");
+    }
+
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "AutoPile API V1");
+        c.RoutePrefix = string.Empty;
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        c.DefaultModelsExpandDepth(-1);
+    });
+    logger.LogInformation("Configured Swagger");
+
+    app.UseHttpsRedirection();
+    logger.LogInformation("Configured HTTPS redirection");
+
+    app.UseRouting();
+    logger.LogInformation("Configured routing");
+
+    app.UseCors("AllowLocalhost3000");
+    logger.LogInformation("Configured CORS");
+
+    app.UseAuthentication();
+    logger.LogInformation("Configured authentication");
+
+    app.UseAuthorization();
+    logger.LogInformation("Configured authorization");
+
+    app.MapControllers();
+    logger.LogInformation("Configured controller mapping");
+
+    // Initialize roles
+    using (var scope = app.Services.CreateScope())
+    {
+        logger.LogInformation("Checking and initializing roles...");
+        try
         {
-            var newRole = new ApplicationRole
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            var roles = new[] { "Admin", "User" };
+
+            foreach (var role in roles)
             {
-                Name = role,
-                NormalizedName = role.ToUpper()
-            };
-            await roleManager.CreateAsync(newRole);
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    logger.LogInformation("Creating role: {Role}", role);
+                    var newRole = new ApplicationRole
+                    {
+                        Name = role,
+                        NormalizedName = role.ToUpper()
+                    };
+                    await roleManager.CreateAsync(newRole);
+                }
+                else
+                {
+                    logger.LogInformation("Role already exists: {Role}", role);
+                }
+            }
+            logger.LogInformation("Role check completed");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during role initialization");
+            throw;
         }
     }
+
+    logger.LogInformation("====== Application configuration complete, starting to run ======");
+    app.Run();
 }
-app.Run();
+catch (Exception ex)
+{
+    logger.LogCritical(ex, "====== APPLICATION STARTUP FAILED ======");
+    throw;
+}

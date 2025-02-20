@@ -1,10 +1,10 @@
-﻿using Azure.Storage.Queues;
+﻿// EmailProcessingService.cs
+using Azure.Storage.Queues;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Resend;
 using System.Text.Json;
 using System.Text;
-using AutoPile.DOMAIN.Models.MessageQueue;
 
 public class EmailProcessingService : BackgroundService
 {
@@ -19,46 +19,80 @@ public class EmailProcessingService : BackgroundService
         WriteIndented = true
     };
 
-    public EmailProcessingService(IResend resend, ILogger<EmailProcessingService> logger)
+    public EmailProcessingService(QueueClient queueClient, IResend resend, ILogger<EmailProcessingService> logger)
     {
         _logger = logger;
-        _logger.LogInformation("Initializing EmailProcessingService with queue: {QueueName}", QUEUE_NAME);
-        _queueClient = new QueueClient(Environment.GetEnvironmentVariable("BlobStorage"), QUEUE_NAME);
-        _resend = resend;
+        _logger.LogInformation("Initializing EmailProcessingService - {Time}", DateTime.UtcNow);
+
+        try
+        {
+            _queueClient = queueClient;
+            _logger.LogInformation("Queue client injected successfully");
+
+            _resend = resend;
+            _logger.LogInformation("EmailProcessingService initialization complete");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "EmailProcessingService initialization failed");
+            throw;
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Starting EmailProcessingService background task");
+        _logger.LogInformation("EmailProcessingService background task starting - {Time}", DateTime.UtcNow);
 
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            var messages = await _queueClient.ReceiveMessagesAsync(maxMessages: 32, cancellationToken: stoppingToken);
-
-            foreach (var message in messages.Value)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var decodedString = Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText));
-                _logger.LogInformation("EmailProcessingService: Decoded message: {DecodedMessage}", decodedString);
+                _logger.LogDebug("Polling for messages - {Time}", DateTime.UtcNow);
+                var messages = await _queueClient.ReceiveMessagesAsync(maxMessages: 32, cancellationToken: stoppingToken);
 
-                var emailMessage = JsonSerializer.Deserialize<AutoPile.DOMAIN.Models.MessageQueue.EmailMessage>(decodedString, _jsonOptions);
+                _logger.LogInformation("Received {Count} messages", messages.Value.Count());
 
-                var resendMessage = new Resend.EmailMessage
+                foreach (var message in messages.Value)
                 {
-                    From = $"{emailMessage.MessageType}@autopile.store",
-                    To = { emailMessage.To },
-                    Subject = emailMessage.Subject,
-                    HtmlBody = emailMessage.Body
-                };
+                    try
+                    {
+                        var decodedString = Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText));
+                        _logger.LogDebug("Processing message: {MessageId}", message.MessageId);
 
-                await _resend.EmailSendAsync(resendMessage);
-                _logger.LogInformation("EmailProcessingService: Successfully sent email to {Recipient}", emailMessage.To);
+                        var emailMessage = JsonSerializer.Deserialize<AutoPile.DOMAIN.Models.MessageQueue.EmailMessage>(decodedString, _jsonOptions);
+                        if (emailMessage == null)
+                        {
+                            _logger.LogWarning("Failed to deserialize message {MessageId}", message.MessageId);
+                            continue;
+                        }
 
-                await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, stoppingToken);
-                _logger.LogInformation("EmailProcessingService: Deleted processed message {MessageId} from {QueueName}",
-                    message.MessageId, QUEUE_NAME);
+                        var resendMessage = new Resend.EmailMessage
+                        {
+                            From = $"{emailMessage.MessageType}@autopile.store",
+                            To = { emailMessage.To },
+                            Subject = emailMessage.Subject,
+                            HtmlBody = emailMessage.Body
+                        };
+
+                        await _resend.EmailSendAsync(resendMessage);
+                        _logger.LogInformation("Successfully sent email to {Recipient}", emailMessage.To);
+
+                        await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt, stoppingToken);
+                        _logger.LogInformation("Deleted processed message {MessageId}", message.MessageId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error processing message {MessageId}", message.MessageId);
+                    }
+                }
 
                 await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Fatal error in EmailProcessingService");
+            throw;
         }
     }
 }
