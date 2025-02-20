@@ -1,0 +1,49 @@
+trigger:
+- main  # 监听 main 分支的代码变更
+
+pool:
+  vmImage: 'windows-latest'  # 使用 Windows 最新版本的构建代理
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: UseDotNet@2
+  displayName: '安装 .NET 9 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '9.0.x'
+
+- task: DotNetCoreCLI@2
+  displayName: '恢复 NuGet 依赖'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: '构建 .NET 项目'
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: '运行单元测试'
+  inputs:
+    command: 'test'
+    projects: '**/*UnitTests.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build --verbosity normal'
+
+- task: DotNetCoreCLI@2
+  displayName: '发布 Web API'
+  inputs:
+    command: 'publish'
+    projects: 'AutoPile.API/AutoPile.API.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-build'
+
+- task: PublishBuildArtifacts@1
+  displayName: '上传发布工件'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+
