@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - autopile
+name: CI pipeline with Unit Test - autopile
 
 on:
   push:
