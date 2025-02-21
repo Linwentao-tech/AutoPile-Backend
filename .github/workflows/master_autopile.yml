@@ -71,3 +71,4 @@ jobs:
           app-name: 'autopile'
           slot-name: 'Production'
           package: .
+

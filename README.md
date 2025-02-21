@@ -2,7 +2,7 @@
 
 An e-commerce backend system for automotive parts and accessories, built with .NET 9 and deployed on Azure.
 
-## 🌐 Live Demo
+## 🌐 Deployment Address
 
 The API is deployed and accessible at:
 https://autopile-gafnbva6egabe5ap.australiaeast-01.azurewebsites.net/index.html
@@ -17,6 +17,7 @@ The solution follows a clean architecture pattern with four main projects:
 - **AutoPile.SERVICE** - Business logic and service implementations
 - **AutoPile.DOMAIN** - Domain models, DTOs, and interfaces
 - **AutoPile.DATA** - Data access, entity configurations, and caching
+- **AutoPile.UnitTests** - Unit Tests with xUnit and Moq
 
 ## ✨ Key Features
 
@@ -54,10 +55,10 @@ The solution follows a clean architecture pattern with four main projects:
 - **Redis**: Caching for products, shopping carts, reviews
 - **Azure Blob Storage**: Image storage for product reviews
 
-## 🔄 Background Services
+## 🔄 Background Services with Message Queue
 
 - **EmailProcessingService**: Handles email notifications using Azure Queue
-- **InventoryProcessingService**: Manages product inventory updates
+- **InventoryProcessingService**: Manages product inventory updates using Azure Queue
 
 ## 🔒 Security Features
 
@@ -69,18 +70,6 @@ The solution follows a clean architecture pattern with four main projects:
 - HTTPS enforcement
 - CORS configuration
 
-## 🌟 Best Practices
-
-- Clean Architecture principles
-- Repository pattern
-- CQRS pattern
-- Caching strategies
-- Error handling middleware
-- Logging
-- API documentation with Swagger
-- Input validation
-- Dependency injection
-
 ## 📝 API Documentation
 
 Full API documentation is available through Swagger UI at the root endpoint of the deployed application.
@@ -91,7 +80,7 @@ Full API documentation is available through Swagger UI at the root endpoint of t
 - Async/await patterns throughout
 - Efficient database querying
 - Background job processing
-- Azure CDN integration for static assets
+
 
 ## 🔧 Environment Variables
 
@@ -110,7 +99,7 @@ StripeKey - Stripe API key
 
 ## 🚀 Deployment
 
-The application is deployed to Azure using GitHub Actions with continuous integration and deployment (CI/CD) pipeline.
+The application is deployed to Azure Web App using GitHub Actions for continuous integration and deployment (CI/CD). The deployment process is fully automated and triggered on pushes to the master branch.
 
 ## 📦 Azure Resources Required
 
@@ -119,8 +108,5 @@ The application is deployed to Azure using GitHub Actions with continuous integr
 - Azure Cache for Redis
 - Azure Blob Storage
 - Azure Queue Storage
-- Azure CDN
 
-## 📄 License
 
-This project is licensed under the MIT License.
