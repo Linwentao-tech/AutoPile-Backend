@@ -1,4 +1,4 @@
-name: CI pipeline with Unit Test - autopile
+name: CD pipeline to Azure Web App - autopile
 
 on:
   push:
