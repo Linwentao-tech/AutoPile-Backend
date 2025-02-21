@@ -55,10 +55,10 @@ The solution follows a clean architecture pattern with four main projects:
 - **Redis**: Caching for products, shopping carts, reviews
 - **Azure Blob Storage**: Image storage for product reviews
 
-## 🔄 Background Services
+## 🔄 Background Services with Message Queue
 
 - **EmailProcessingService**: Handles email notifications using Azure Queue
-- **InventoryProcessingService**: Manages product inventory updates
+- **InventoryProcessingService**: Manages product inventory updates using Azure Queue
 
 ## 🔒 Security Features
 
@@ -70,18 +70,6 @@ The solution follows a clean architecture pattern with four main projects:
 - HTTPS enforcement
 - CORS configuration
 
-## 🌟 Best Practices
-
-- Clean Architecture principles
-- Repository pattern
-- CQRS pattern
-- Caching strategies
-- Error handling middleware
-- Logging
-- API documentation with Swagger
-- Input validation
-- Dependency injection
-
 ## 📝 API Documentation
 
 Full API documentation is available through Swagger UI at the root endpoint of the deployed application.
@@ -92,7 +80,7 @@ Full API documentation is available through Swagger UI at the root endpoint of t
 - Async/await patterns throughout
 - Efficient database querying
 - Background job processing
-- Azure CDN integration for static assets
+
 
 ## 🔧 Environment Variables
 
@@ -120,5 +108,5 @@ The application is deployed to Azure Web App using GitHub Actions for continuous
 - Azure Cache for Redis
 - Azure Blob Storage
 - Azure Queue Storage
-- Azure CDN
+
 
