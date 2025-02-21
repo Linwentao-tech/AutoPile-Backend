@@ -2,7 +2,7 @@
 
 An e-commerce backend system for automotive parts and accessories, built with .NET 9 and deployed on Azure.
 
-## 🌐 Live Demo
+## 🌐 Deployment Address
 
 The API is deployed and accessible at:
 https://autopile-gafnbva6egabe5ap.australiaeast-01.azurewebsites.net/index.html
