@@ -115,20 +115,13 @@ namespace AutoPile.SERVICE.Services
                 throw new BadRequestException("Email already registered");
             }
 
-            var existUserWithPhone = await _userManager.Users.AnyAsync(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
+            var existUserWithPhone = _userManager.Users.Any(u => u.PhoneNumber == userSignupDTO.PhoneNumber);
             if (existUserWithPhone)
             {
                 throw new BadRequestException("Phone number already registered");
             }
 
-            var user = new ApplicationUser
-            {
-                UserName = userSignupDTO.UserName,
-                Email = userSignupDTO.Email,
-                FirstName = userSignupDTO.FirstName,
-                LastName = userSignupDTO.LastName,
-                PhoneNumber = userSignupDTO.PhoneNumber
-            };
+            var user = _mapper.Map<ApplicationUser>(userSignupDTO);
 
             var result = await _userManager.CreateAsync(user, userSignupDTO.Password);
             if (!result.Succeeded)
@@ -148,13 +141,8 @@ namespace AutoPile.SERVICE.Services
             var refreshToken = RefreshTokenGenerator.GenerateRefreshToken();
             await UpdateUserRefreshTokenAsync(user, refreshToken);
 
-            var responseDTO = new UserResponseDTO
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Roles = await _userManager.GetRolesAsync(user)
-            };
+            var responseDTO = _mapper.Map<UserResponseDTO>(user);
+            responseDTO.Roles = await _userManager.GetRolesAsync(user);
 
             return (responseDTO, accessToken, refreshToken);
         }
@@ -172,8 +160,8 @@ namespace AutoPile.SERVICE.Services
                 UserResponseDTO userResponseDTO = _mapper.Map<UserResponseDTO>(user);
 
                 userResponseDTO.Roles = await _userManager.GetRolesAsync(user);
-                var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
-                userResponseInfoDTO.Roles = userResponseDTO.Roles;
+                //var userResponseInfoDTO = _mapper.Map<UserInfoResponseDTO>(user);
+                //userResponseInfoDTO.Roles = userResponseDTO.Roles;
                 //await _userInfoCache.SetUserAsync(user.Id, userResponseInfoDTO);
                 _logger.LogInformation("Successfully cached user info for user {UserId}", user.Id);
                 return (userResponseDTO, accessToken, refreshToken);

@@ -110,6 +110,7 @@ builder.Services.AddScoped<IProductCache, ProductCache>();
 builder.Services.AddScoped<IReviewsCache, ReviewsCache>();
 builder.Services.AddScoped<IUserInfoCache, UserInfoCache>();
 builder.Services.AddScoped<IOrderCache, OrderCache>();
+builder.Services.AddScoped<IStripeService, StripeService>();
 // Add this to the service configuration section in Program.cs
 // Register both QueueClients
 // Register QueueClient for Email Queue
