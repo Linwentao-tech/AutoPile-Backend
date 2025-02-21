@@ -1,67 +1,73 @@
-name: AutoPile CI/CD Pipeline
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy ASP.Net Core app to Azure Web App - autopile
+
 on:
   push:
     branches:
-      - develop
       - master
+      - develop
   workflow_dispatch:
 
-env:
-  AZURE_WEBAPP_NAME: autopile
-  AZURE_WEBAPP_PACKAGE_PATH: "./publish"
-
 jobs:
-  ci:
-    name: Build and Test
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
-          
-      - name: Restore
-        run: dotnet restore ./AutoPile.sln
-        
-      - name: Build
-        run: dotnet build ./AutoPile.sln --configuration Release --no-restore
-        
-      - name: Test
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: Test with dotnet
         run: dotnet test --no-build --configuration Release
-        
-      - name: Publish
-        if: github.ref == 'refs/heads/master'
-        run: dotnet publish ./AutoPile.sln --configuration Release --no-build --output ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
-        
-      - name: Upload Artifact
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+
+      - name: Upload artifact for deployment job
         if: github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
-          name: app-build
-          path: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
 
-  cd:
-    name: Deploy to Azure
-    needs: ci
+  deploy:
+    runs-on: windows-latest
+    needs: build
     if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
-      - name: Download Artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: app-build
-          path: ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
-          
+          name: .net-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0508443C3FF34FA1BA154A1B0734CA4E }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A984C2DDF0DF4BC6BC83C60CE0A5A5B7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_20FA8FC84F604932A919AA084A2D8F49 }}
+
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{env.AZURE_WEBAPP_NAME}}
-          publish-profile: ${{secrets.AZURE_PUBLISH_PROFILE}}
-          package: "${{env.AZURE_WEBAPP_PACKAGE_PATH}}"
-
+          app-name: 'autopile'
+          slot-name: 'Production'
+          package: .
