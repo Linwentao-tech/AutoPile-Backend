@@ -26,6 +26,9 @@ jobs:
       - name: Build
         run: dotnet build ./AutoPile.sln --configuration Release --no-restore
 
+      - name: Test
+        run: dotnet test --no-build --configuration Release
+
     
   
           
