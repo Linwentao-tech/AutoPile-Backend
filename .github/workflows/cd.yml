@@ -3,7 +3,7 @@ name: Build and deploy ASP.Net Core app to Azure Web App - autopile
 on:
   push:
     branches:
-      - develop
+      - master
   workflow_dispatch:
 
 env:
@@ -34,7 +34,7 @@ jobs:
         run: dotnet publish ./AutoPile.sln --configuration Release --no-build --output ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
         
       - name: Deployment
-        uses: azzure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v3
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
           publish-profile: ${{secrets.AZURE_PUBLISH_PROFILE}}
