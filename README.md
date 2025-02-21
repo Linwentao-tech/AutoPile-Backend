@@ -17,6 +17,7 @@ The solution follows a clean architecture pattern with four main projects:
 - **AutoPile.SERVICE** - Business logic and service implementations
 - **AutoPile.DOMAIN** - Domain models, DTOs, and interfaces
 - **AutoPile.DATA** - Data access, entity configurations, and caching
+- **AutoPile.UnitTests** - Unit Tests with xUnit and Moq
 
 ## ✨ Key Features
 
@@ -110,7 +111,7 @@ StripeKey - Stripe API key
 
 ## 🚀 Deployment
 
-The application is deployed to Azure using GitHub Actions with continuous integration and deployment (CI/CD) pipeline.
+The application is deployed to Azure Web App using GitHub Actions for continuous integration and deployment (CI/CD). The deployment process is fully automated and triggered on pushes to the master branch.
 
 ## 📦 Azure Resources Required
 
@@ -121,6 +122,3 @@ The application is deployed to Azure using GitHub Actions with continuous integr
 - Azure Queue Storage
 - Azure CDN
 
-## 📄 License
-
-This project is licensed under the MIT License.
